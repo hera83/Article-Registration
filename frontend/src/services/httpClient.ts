@@ -15,24 +15,9 @@ export async function requestJson<T>(path: string, init?: RequestInit): Promise<
 
   if (!response.ok) {
     const fallbackMessage = `Request failed with status ${response.status}`;
-    try {
-      const payload = (await response.json()) as {
-        error?: string;
-        title?: string;
-        detail?: string;
-        errors?: Record<string, string[]>;
-      };
-
-      const validationMessage = payload.errors
-        ? Object.values(payload.errors)
-            .flat()
-            .find(Boolean)
-        : undefined;
-
-      throw new Error(payload.error ?? validationMessage ?? payload.detail ?? payload.title ?? fallbackMessage);
-    } catch {
-      throw new Error(fallbackMessage);
-    }
+    const responseText = await response.text();
+    const errorMessage = extractErrorMessage(responseText);
+    throw new Error(errorMessage ?? fallbackMessage);
   }
 
   if (response.status === 204) {
@@ -40,4 +25,29 @@ export async function requestJson<T>(path: string, init?: RequestInit): Promise<
   }
 
   return (await response.json()) as T;
+}
+
+function extractErrorMessage(responseText: string): string | undefined {
+  if (!responseText) {
+    return undefined;
+  }
+
+  try {
+    const payload = JSON.parse(responseText) as {
+      error?: string;
+      title?: string;
+      detail?: string;
+      errors?: Record<string, string[]>;
+    };
+
+    const validationMessage = payload.errors
+      ? Object.entries(payload.errors)
+          .flatMap(([key, messages]) => messages.map((message) => (key ? `${key}: ${message}` : message)))
+          .find(Boolean)
+      : undefined;
+
+    return payload.error ?? validationMessage ?? payload.detail ?? payload.title;
+  } catch {
+    return responseText.trim() || undefined;
+  }
 }

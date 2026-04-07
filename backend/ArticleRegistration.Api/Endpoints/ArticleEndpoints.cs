@@ -1,6 +1,7 @@
 using ArticleRegistration.Api.Contracts;
 using ArticleRegistration.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ArticleRegistration.Api.Endpoints;
 
@@ -13,9 +14,26 @@ public static class ArticleEndpoints
         group.MapGet("/", async (
             [AsParameters] ArticleSearchQuery query,
             IArticleService articleService,
+            ILoggerFactory loggerFactory,
             CancellationToken cancellationToken) =>
         {
-            var articles = await articleService.SearchAsync(query.ToRequest(), cancellationToken);
+            var logger = loggerFactory.CreateLogger("ArticleSearch");
+            logger.LogInformation(
+                "Article search request. query={Query}, articleType={ArticleType}, area={Area}, tag={Tag}, onShoppingList={OnShoppingList}, status={Status}, stockStatus={StockStatus}",
+                query.Query,
+                query.ArticleType,
+                query.Area,
+                query.Tag,
+                query.OnShoppingList,
+                query.Status,
+                query.StockStatus);
+
+            if (!query.TryToRequest(out var request, out var validationErrors))
+            {
+                return Results.ValidationProblem(validationErrors);
+            }
+
+            var articles = await articleService.SearchAsync(request, cancellationToken);
             return Results.Ok(articles);
         });
 
@@ -123,12 +141,57 @@ public static class ArticleEndpoints
         public string? Area { get; init; }
         public string? Tag { get; init; }
         public bool? OnShoppingList { get; init; }
-        public ArticleLifecycleFilter Status { get; init; } = ArticleLifecycleFilter.Active;
-        public StockStatusFilter StockStatus { get; init; } = StockStatusFilter.All;
+        public string? Status { get; init; } = ArticleLifecycleFilter.Active.ToString();
+        public string? StockStatus { get; init; } = Contracts.StockStatusFilter.All.ToString();
 
-        public ArticleSearchRequest ToRequest()
+        public bool TryToRequest(
+            out ArticleSearchRequest request,
+            out Dictionary<string, string[]> validationErrors)
         {
-            return new ArticleSearchRequest(Query, ArticleType, Area, Tag, OnShoppingList, Status, StockStatus);
+            validationErrors = new Dictionary<string, string[]>();
+
+            if (!TryParseStatus(Status, out var lifecycleFilter))
+            {
+                validationErrors["status"] = ["Invalid status. Allowed values: active, archived, all."];
+            }
+
+            if (!TryParseStockStatus(StockStatus, out var stockStatusFilter))
+            {
+                validationErrors["stockStatus"] = ["Invalid stockStatus. Allowed values: all, inStock, empty."];
+            }
+
+            if (validationErrors.Count > 0)
+            {
+                request = default!;
+                return false;
+            }
+
+            request = new ArticleSearchRequest(Query, ArticleType, Area, Tag, OnShoppingList, lifecycleFilter, stockStatusFilter);
+            return true;
+        }
+
+        private static bool TryParseStatus(string? value, out ArticleLifecycleFilter status)
+        {
+            status = ArticleLifecycleFilter.Active;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return true;
+            }
+
+            return Enum.TryParse(value, ignoreCase: true, out status);
+        }
+
+        private static bool TryParseStockStatus(string? value, out Contracts.StockStatusFilter stockStatus)
+        {
+            stockStatus = Contracts.StockStatusFilter.All;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return true;
+            }
+
+            return Enum.TryParse(value, ignoreCase: true, out stockStatus);
         }
     }
 }

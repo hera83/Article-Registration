@@ -25,7 +25,7 @@ function toArticleQueryString(filters: ArticleFilters): string {
 }
 
 export function getArticles(filters: ArticleFilters): Promise<Article[]> {
-  return requestJson<Article[]>(`/api/articles/${toArticleQueryString(filters)}`);
+  return requestJson<Article[]>(`/api/articles${toArticleQueryString(filters)}`);
 }
 
 export function getArticleById(id: string): Promise<Article> {
@@ -33,7 +33,7 @@ export function getArticleById(id: string): Promise<Article> {
 }
 
 export function createArticle(input: ArticleInput): Promise<Article> {
-  return requestJson<Article>('/api/articles/', {
+  return requestJson<Article>('/api/articles', {
     method: 'POST',
     body: JSON.stringify(input),
   });
