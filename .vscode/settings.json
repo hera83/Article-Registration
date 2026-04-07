@@ -1,0 +1,28 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^dotnet .*$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node --version$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^npm --version$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^Set-Location \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^Set-Location \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm install --ignore-scripts$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

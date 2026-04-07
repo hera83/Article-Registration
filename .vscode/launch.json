@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend API (.NET)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build backend",
+      "program": "${workspaceFolder}/backend/ArticleRegistration.Api/bin/Debug/net10.0/ArticleRegistration.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend/ArticleRegistration.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "serverReadyAction": {
+        "action": "debugWithEdge",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+        "uriFormat": "%s/swagger"
+      },
+      "console": "internalConsole"
+    },
+    {
+      "name": "Frontend Dev Server (Vite)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "serverReadyAction": {
+        "action": "debugWithEdge",
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Start Backend + Frontend + Open in Edge",
+      "configurations": [
+        "Backend API (.NET)",
+        "Frontend Dev Server (Vite)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
