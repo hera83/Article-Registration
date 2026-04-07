@@ -34,21 +34,33 @@ builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var swaggerEnabled = builder.Configuration.GetValue<bool?>("Swagger:Enabled") ?? true;
+var httpsRedirectionEnabled = builder.Configuration.GetValue<bool?>("HttpsRedirection:Enabled")
+    ?? builder.Environment.IsDevelopment();
+
 var app = builder.Build();
 
 await app.ApplyDatabaseMigrationsAsync();
 
-if (app.Environment.IsDevelopment())
+if (swaggerEnabled)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseCors("FrontendDev");
-app.UseHttpsRedirection();
+if (httpsRedirectionEnabled)
+{
+    app.UseHttpsRedirection();
+}
 
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapArticleEndpoints();
 app.MapLookupEndpoints();
+
+app.Logger.LogInformation("Startup environment: {EnvironmentName}", app.Environment.EnvironmentName);
+app.Logger.LogInformation("Swagger enabled: {SwaggerEnabled}", swaggerEnabled);
+app.Logger.LogInformation("Health endpoints: /health, /api/health");
 
 app.Run();
