@@ -76,8 +76,8 @@ export function ArticleEditorForm({ areas, tags, existingArticles, editingArticl
   }, [editingArticle]);
 
   const actionLabel = useMemo(() => {
-    if (isSaving && isEditing) return 'Saving changes...';
-    if (isSaving) return 'Saving...';
+    if (isSaving && isEditing) return 'Saving changes…';
+    if (isSaving) return 'Saving…';
     return isEditing ? 'Save changes' : 'Create article';
   }, [isEditing, isSaving]);
 
@@ -87,44 +87,26 @@ export function ArticleEditorForm({ areas, tags, existingArticles, editingArticl
 
   function addTag(rawTag: string) {
     const normalizedTag = rawTag.trim();
-    if (!normalizedTag) {
-      return;
-    }
-
+    if (!normalizedTag) return;
     if (form.tags.some((tag) => tag.toLowerCase() === normalizedTag.toLowerCase())) {
       setTagInput('');
       return;
     }
-
-    setForm((current) => ({
-      ...current,
-      tags: [...current.tags, normalizedTag],
-    }));
+    setForm((current) => ({ ...current, tags: [...current.tags, normalizedTag] }));
     setTagInput('');
   }
 
   function removeTag(tagToRemove: string) {
-    setForm((current) => ({
-      ...current,
-      tags: current.tags.filter((tag) => tag !== tagToRemove),
-    }));
+    setForm((current) => ({ ...current, tags: current.tags.filter((tag) => tag !== tagToRemove) }));
   }
 
   function validate(): ValidationErrors {
     const nextErrors: ValidationErrors = {};
-
-    if (!form.name.trim()) {
-      nextErrors.name = 'Name is required.';
-    }
-
-    if (!form.area.trim()) {
-      nextErrors.area = 'Area is required.';
-    }
-
+    if (!form.name.trim()) nextErrors.name = 'Name is required.';
+    if (!form.area.trim()) nextErrors.area = 'Area is required.';
     if (form.articleType === 'stock' && (Number.isNaN(form.quantity) || form.quantity < 0)) {
       nextErrors.quantity = 'Quantity must be 0 or greater.';
     }
-
     return nextErrors;
   }
 
@@ -133,9 +115,7 @@ export function ArticleEditorForm({ areas, tags, existingArticles, editingArticl
 
     const nextErrors = validate();
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(nextErrors).length > 0) return;
 
     setIsSaving(true);
 
@@ -152,7 +132,6 @@ export function ArticleEditorForm({ areas, tags, existingArticles, editingArticl
       } else {
         await onCreate(payload);
       }
-
       setForm(initialForm);
       setTagInput('');
       setErrors({});
@@ -162,204 +141,247 @@ export function ArticleEditorForm({ areas, tags, existingArticles, editingArticl
   }
 
   return (
-    <form className="panel form-grid" onSubmit={handleSubmit}>
-      <h2>{isEditing ? 'Edit article' : 'Create article'}</h2>
-      <p className="muted-copy">Few required fields first. Add details only when needed.</p>
-
-      <FormField label="Name">
-        <input
-          required
-          title="Name"
-          placeholder="Item name"
-          value={form.name}
-          onChange={(event) => setForm({ ...form, name: event.target.value })}
-          autoFocus
-        />
-        {errors.name ? <small className="inline-error-text">{errors.name}</small> : null}
-      </FormField>
-
-      {similarArticles.length > 0 ? (
-        <div className="similar-suggestions">
-          <strong>Check these before saving</strong>
-          <div className="similar-list">
-            {similarArticles.map((candidate) => (
-              <button
-                key={candidate.article.id}
-                type="button"
-                className="similar-item"
-                onClick={() => onOpenExisting(candidate.article)}
-              >
-                <span className="similar-item-name">{candidate.article.name}</span>
-                <span className="similar-item-meta">
-                  {candidate.article.area}
-                  {candidate.article.brand || candidate.article.model
-                    ? ` · ${candidate.article.brand ?? 'No brand'} / ${candidate.article.model ?? 'No model'}`
-                    : ''}
-                </span>
-                <span className="similar-item-meta">{candidate.reasons.slice(0, 2).join(' · ')}</span>
-              </button>
-            ))}
-          </div>
+    <form className="article-editor panel" onSubmit={handleSubmit}>
+      {/* Header */}
+      <div className="editor-header">
+        <div className="editor-header-text">
+          <h2>{isEditing ? 'Edit article' : 'New article'}</h2>
+          <p className="muted-copy">{isEditing ? 'Update the details below.' : 'Start with a name and area.'}</p>
         </div>
-      ) : null}
-
-      <FormField label="Article type">
-        <select
-          title="Article type"
-          value={form.articleType}
-          onChange={(event) => setForm({ ...form, articleType: event.target.value as ArticleType })}
-        >
-          <option value="standard">Standard</option>
-          <option value="stock">Stock</option>
-        </select>
-      </FormField>
-
-      <FormField label="Area">
-        <input
-          required
-          title="Area"
-          placeholder="Select or type area"
-          list="area-options"
-          value={form.area}
-          onChange={(event) => setForm({ ...form, area: event.target.value })}
-        />
-        {errors.area ? <small className="inline-error-text">{errors.area}</small> : null}
-        <datalist id="area-options">
-          {areas.map((area) => (
-            <option key={area.id} value={area.name} />
-          ))}
-        </datalist>
-      </FormField>
-
-      <FormField label="Tags">
-        <div className="tag-editor">
-          <input
-            title="Tags"
-            placeholder="Type tag and press Enter"
-            list="tag-options-form"
-            value={tagInput}
-            onChange={(event) => setTagInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ',') {
-                event.preventDefault();
-                addTag(tagInput);
-              }
-            }}
-          />
-          <button type="button" onClick={() => addTag(tagInput)}>
-            Add
+        {isEditing ? (
+          <button type="button" className="editor-close-btn" aria-label="Cancel editing" onClick={onCancelEdit} disabled={isSaving}>
+            ×
           </button>
-        </div>
-        {form.tags.length > 0 ? (
-          <div className="chip-row">
-            {form.tags.map((tag) => (
-              <button key={tag} type="button" className="chip-button" onClick={() => removeTag(tag)}>
-                {tag} ×
-              </button>
-            ))}
-          </div>
         ) : null}
-        <datalist id="tag-options-form">
-          {tags.map((tag) => (
-            <option key={tag.id} value={tag.name} />
-          ))}
-        </datalist>
-      </FormField>
+      </div>
 
-      {form.articleType === 'stock' ? (
-        <>
-          <FormField label="Unit">
-            <input title="Unit" placeholder="pcs, liter, box" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} />
-          </FormField>
-          <FormField label="Quantity">
+      {/* Section: Essentials */}
+      <div className="form-section">
+        <span className="form-section-label">Essentials</span>
+        <div className="form-section-fields">
+          <FormField label="Name" error={errors.name}>
             <input
-              title="Quantity"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.quantity}
-              onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })}
+              required
+              title="Name"
+              placeholder="Item name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              autoFocus
             />
-            {errors.quantity ? <small className="inline-error-text">{errors.quantity}</small> : null}
           </FormField>
 
-          <FormField label="On shopping list">
-            <label className="inline-toggle">
-              <input
-                type="checkbox"
-                checked={form.isOnShoppingList}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    isOnShoppingList: event.target.checked,
-                    shoppingNote: event.target.checked ? form.shoppingNote : '',
-                  })
-                }
-              />
-              <span>Mark for shopping</span>
-            </label>
-          </FormField>
-
-          {form.isOnShoppingList ? (
-            <FormField label="Shopping note">
-              <input
-                title="Shopping note"
-                placeholder="Optional note for shopping"
-                value={form.shoppingNote}
-                onChange={(event) => setForm({ ...form, shoppingNote: event.target.value })}
-              />
-            </FormField>
+          {similarArticles.length > 0 ? (
+            <div className="similar-suggestions">
+              <span className="kicker">Check before saving</span>
+              <div className="similar-list">
+                {similarArticles.map((candidate) => (
+                  <button
+                    key={candidate.article.id}
+                    type="button"
+                    className="similar-item"
+                    onClick={() => onOpenExisting(candidate.article)}
+                  >
+                    <span className="similar-item-name">{candidate.article.name}</span>
+                    <span className="similar-item-meta">
+                      {candidate.article.area}
+                      {candidate.article.brand || candidate.article.model
+                        ? ` · ${candidate.article.brand ?? 'No brand'} / ${candidate.article.model ?? 'No model'}`
+                        : ''}
+                    </span>
+                    <span className="similar-item-meta">{candidate.reasons.slice(0, 2).join(' · ')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : null}
-        </>
+
+          <div className="form-row">
+            <FormField label="Type">
+              <select
+                title="Article type"
+                value={form.articleType}
+                onChange={(e) => setForm({ ...form, articleType: e.target.value as ArticleType })}
+              >
+                <option value="standard">Standard</option>
+                <option value="stock">Stock</option>
+              </select>
+            </FormField>
+
+            <FormField label="Area" error={errors.area}>
+              <input
+                required
+                title="Area"
+                placeholder="Select or type"
+                list="area-options"
+                value={form.area}
+                onChange={(e) => setForm({ ...form, area: e.target.value })}
+              />
+              <datalist id="area-options">
+                {areas.map((area) => (
+                  <option key={area.id} value={area.name} />
+                ))}
+              </datalist>
+            </FormField>
+          </div>
+
+          <label className="form-field">
+            <span>Tags</span>
+            <div className="tag-input-row">
+              <input
+                title="Tags"
+                placeholder="Type and press Enter"
+                list="tag-options-form"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addTag(tagInput);
+                  }
+                }}
+              />
+              <button type="button" className="tag-add-btn" onClick={() => addTag(tagInput)}>
+                Add
+              </button>
+            </div>
+            {form.tags.length > 0 ? (
+              <div className="tag-pill-row">
+                {form.tags.map((tag) => (
+                  <button key={tag} type="button" className="tag-pill" onClick={() => removeTag(tag)}>
+                    {tag}
+                    <span className="tag-pill-x" aria-hidden="true">×</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <datalist id="tag-options-form">
+              {tags.map((tag) => (
+                <option key={tag.id} value={tag.name} />
+              ))}
+            </datalist>
+          </label>
+        </div>
+      </div>
+
+      {/* Section: Stock (conditional) */}
+      {form.articleType === 'stock' ? (
+        <div className="form-section">
+          <span className="form-section-label">Stock</span>
+          <div className="form-section-fields">
+            <div className="form-row">
+              <FormField label="Unit">
+                <input
+                  title="Unit"
+                  placeholder="pcs, litre, box"
+                  value={form.unit}
+                  onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                />
+              </FormField>
+
+              <FormField label="Quantity" error={errors.quantity}>
+                <input
+                  title="Quantity"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.quantity}
+                  onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+                />
+              </FormField>
+            </div>
+
+            <div className="form-field">
+              <span>Shopping list</span>
+              <label className="inline-toggle">
+                <input
+                  type="checkbox"
+                  checked={form.isOnShoppingList}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      isOnShoppingList: e.target.checked,
+                      shoppingNote: e.target.checked ? form.shoppingNote : '',
+                    })
+                  }
+                />
+                <span>Mark for shopping</span>
+              </label>
+            </div>
+
+            {form.isOnShoppingList ? (
+              <FormField label="Shopping note">
+                <input
+                  title="Shopping note"
+                  placeholder="Optional note for the shopping trip"
+                  value={form.shoppingNote}
+                  onChange={(e) => setForm({ ...form, shoppingNote: e.target.value })}
+                />
+              </FormField>
+            ) : null}
+          </div>
+        </div>
       ) : null}
 
-      <details className="details-block">
-        <summary>More details</summary>
-
-        <div className="details-grid">
-          <FormField label="Brand">
-            <input title="Brand" placeholder="Brand" value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} />
-          </FormField>
-
-          <FormField label="Model">
-            <input title="Model" placeholder="Model" value={form.model} onChange={(event) => setForm({ ...form, model: event.target.value })} />
-          </FormField>
+      {/* Section: Details (collapsible) */}
+      <details className="form-section-details">
+        <summary className="form-section-summary">
+          <span className="form-section-label">Details</span>
+          <span className="form-section-summary-hint">Brand, location, notes</span>
+        </summary>
+        <div className="form-section-fields form-section-inner">
+          <div className="form-row">
+            <FormField label="Brand">
+              <input title="Brand" placeholder="Brand" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} />
+            </FormField>
+            <FormField label="Model">
+              <input title="Model" placeholder="Model" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
+            </FormField>
+          </div>
 
           <FormField label="Typical location">
             <input
               title="Typical location"
               placeholder="Shelf, box, room"
               value={form.typicalLocation}
-              onChange={(event) => setForm({ ...form, typicalLocation: event.target.value })}
+              onChange={(e) => setForm({ ...form, typicalLocation: e.target.value })}
             />
           </FormField>
 
           <FormField label="Note">
-            <textarea title="Note" placeholder="Optional notes" rows={3} value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+            <textarea
+              title="Note"
+              placeholder="Free-form notes"
+              rows={3}
+              value={form.note}
+              onChange={(e) => setForm({ ...form, note: e.target.value })}
+            />
           </FormField>
 
-          <FormField label="Active">
+          <div className="form-field">
+            <span>Status</span>
             <label className="inline-toggle">
               <input
                 type="checkbox"
                 checked={!form.isArchived}
-                onChange={(event) => setForm({ ...form, isArchived: !event.target.checked })}
+                onChange={(e) => setForm({ ...form, isArchived: !e.target.checked })}
               />
               <span>{form.isArchived ? 'Archived' : 'Active'}</span>
             </label>
-          </FormField>
+          </div>
         </div>
       </details>
 
-      <button type="submit" disabled={isSaving}>
-        {actionLabel}
-      </button>
-
-      {isEditing ? (
-        <button type="button" onClick={onCancelEdit} disabled={isSaving}>
-          Cancel
+      {/* Footer actions */}
+      <div className="editor-actions">
+        <button type="submit" disabled={isSaving}>
+          {actionLabel}
         </button>
-      ) : null}
+        {isEditing ? (
+          <button type="button" className="btn-secondary" onClick={onCancelEdit} disabled={isSaving}>
+            Cancel
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }

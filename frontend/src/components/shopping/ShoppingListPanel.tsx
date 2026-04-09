@@ -9,135 +9,216 @@ interface ShoppingListPanelProps {
   mode?: 'compact' | 'workspace';
 }
 
-function formatQuantity(item: ShoppingListItem): string {
-  if (item.quantity === null) {
-    return 'n/a';
-  }
-
+function formatQty(item: ShoppingListItem): string {
+  if (item.quantity === null) return '—';
   return item.unit ? `${item.quantity} ${item.unit}` : `${item.quantity}`;
 }
 
 export function ShoppingListPanel({ items, onRestock, onRemove, mode = 'compact' }: ShoppingListPanelProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [savingIds, setSavingIds] = useState<Record<string, boolean>>({});
-  const [justUpdatedId, setJustUpdatedId] = useState<string | null>(null);
+  const [doneIds, setDoneIds] = useState<Record<string, boolean>>({});
+
+  function getQty(item: ShoppingListItem): number {
+    return quantities[item.articleId] ?? item.quantity ?? 1;
+  }
 
   async function handleRestock(item: ShoppingListItem) {
-    const quantity = quantities[item.articleId] ?? item.quantity ?? 1;
-    setSavingIds((current) => ({ ...current, [item.articleId]: true }));
-
+    const quantity = getQty(item);
+    setSavingIds((prev) => ({ ...prev, [item.articleId]: true }));
     try {
       await onRestock(item, quantity);
-      setJustUpdatedId(item.articleId);
-      window.setTimeout(() => setJustUpdatedId((current) => (current === item.articleId ? null : current)), 1600);
+      setDoneIds((prev) => ({ ...prev, [item.articleId]: true }));
+      window.setTimeout(
+        () => setDoneIds((prev) => ({ ...prev, [item.articleId]: false })),
+        1800,
+      );
     } finally {
-      setSavingIds((current) => ({ ...current, [item.articleId]: false }));
+      setSavingIds((prev) => ({ ...prev, [item.articleId]: false }));
     }
   }
 
   async function handleRemove(item: ShoppingListItem) {
-    setSavingIds((current) => ({ ...current, [item.articleId]: true }));
-
+    setSavingIds((prev) => ({ ...prev, [item.articleId]: true }));
     try {
       await onRemove(item);
     } finally {
-      setSavingIds((current) => ({ ...current, [item.articleId]: false }));
+      setSavingIds((prev) => ({ ...prev, [item.articleId]: false }));
     }
   }
 
-  return (
-    <section className={`panel shopping-panel ${mode === 'workspace' ? 'is-workspace' : 'is-compact'}`}>
-      <header>
-        <p className="kicker">Shopping list</p>
-        <h2>{mode === 'workspace' ? 'Fast refill workspace' : 'Refill workflow'}</h2>
-        <p className="muted-copy">
-          Inline stock updates. When quantity goes above 0, the item leaves this list automatically.
-        </p>
-      </header>
+  /* ── Compact (right-rail sidebar) ─────────────────────────── */
 
-      {items.length === 0 ? (
-        <StatusCard
-          title="Shopping list is clear"
-          description="Items marked for refill will appear here, and they disappear automatically when stock is updated above zero."
-        />
-      ) : (
-        <div className={`shopping-list ${mode === 'workspace' ? 'workspace-list' : ''}`}>
-          {items.map((item) => {
-            const quantity = quantities[item.articleId] ?? item.quantity ?? 1;
-            const isSaving = savingIds[item.articleId] ?? false;
+  if (mode === 'compact') {
+    return (
+      <div className="panel compact-shopping">
+        <div className="compact-shopping-header">
+          <p className="kicker">Shopping list</p>
+          {items.length > 0 ? (
+            <span className="compact-shopping-badge">{items.length}</span>
+          ) : null}
+        </div>
 
-            return (
-              <article key={item.articleId} className="shopping-item">
-                <div className="shopping-item-main">
-                  <h3>{item.name}</h3>
-                  <p className="meta-line">{item.area}</p>
-                  {(item.brand || item.model) ? (
-                    <p className="meta-line">
-                      {item.brand ?? 'No brand'}
-                      {' · '}
-                      {item.model ?? 'No model'}
-                    </p>
-                  ) : null}
-
-                  {item.tags.length > 0 ? (
-                    <div className="chip-row">
-                      {item.tags.map((tag) => (
-                        <span key={tag} className="chip muted">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <p className="meta-line">
-                    Current stock: <strong>{formatQuantity(item)}</strong>
-                  </p>
-
-                  {item.shoppingNote ? <p className="meta-line">Note: {item.shoppingNote}</p> : null}
-                </div>
-
-                <div className="shopping-item-actions">
-                  <label className="form-field">
-                    <span>Set new quantity</span>
+        {items.length === 0 ? (
+          <p className="compact-shopping-empty">All clear — nothing needs refilling.</p>
+        ) : (
+          <ul className="compact-shopping-list">
+            {items.map((item) => {
+              const qty = getQty(item);
+              const isSaving = savingIds[item.articleId] ?? false;
+              const isDone = doneIds[item.articleId] ?? false;
+              return (
+                <li key={item.articleId} className={`compact-shopping-item${isDone ? ' is-done' : ''}`}>
+                  <div className="compact-shopping-info">
+                    <span className="compact-shopping-name">{item.name}</span>
+                    <span className="compact-shopping-area">{item.area}</span>
+                  </div>
+                  <div className="compact-shopping-action">
                     <input
-                      title="Set quantity"
                       type="number"
                       min="0"
                       step="0.01"
-                      value={quantity}
-                      onChange={(event) =>
-                        setQuantities((current) => ({
-                          ...current,
-                          [item.articleId]: Number(event.target.value),
-                        }))
+                      value={qty}
+                      aria-label={`New quantity for ${item.name}`}
+                      className="compact-qty-input"
+                      disabled={isSaving}
+                      onChange={(e) =>
+                        setQuantities((prev) => ({ ...prev, [item.articleId]: Number(e.target.value) }))
                       }
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault();
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
                           void handleRestock(item);
                         }
                       }}
                     />
-                  </label>
-
-                  <div className="action-row">
-                    <button type="button" disabled={isSaving} onClick={() => void handleRestock(item)}>
-                      {isSaving ? 'Saving...' : 'Update stock'}
-                    </button>
-                    <button type="button" disabled={isSaving} onClick={() => void handleRemove(item)}>
-                      Remove
+                    <button
+                      type="button"
+                      className={`compact-qty-btn${isDone ? ' is-done' : ''}`}
+                      disabled={isSaving}
+                      onClick={() => void handleRestock(item)}
+                      aria-label={`Update stock for ${item.name}`}
+                    >
+                      {isDone ? '✓' : '↑'}
                     </button>
                   </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    );
+  }
 
-                  {justUpdatedId === item.articleId ? (
-                    <p className="muted-copy">Updated</p>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+  /* ── Workspace (full shopping view) ───────────────────────── */
+
+  return (
+    <div className="restock-workspace">
+      {items.length === 0 ? (
+        <StatusCard
+          icon="✓"
+          title="Shopping list is clear"
+          description="Articles marked for refill appear here. They leave automatically once you update their stock above zero."
+        />
+      ) : (
+        <>
+          <p className="restock-summary">
+            <strong>{items.length}</strong> {items.length === 1 ? 'item needs' : 'items need'} refilling —
+            update quantities inline and press <kbd>Enter</kbd> or click <em>Update stock</em>.
+          </p>
+
+          <ul className="restock-list">
+            {items.map((item) => {
+              const qty = getQty(item);
+              const isSaving = savingIds[item.articleId] ?? false;
+              const isDone = doneIds[item.articleId] ?? false;
+              return (
+                <li key={item.articleId} className={`restock-item${isDone ? ' is-done' : ''}`}>
+                  <div className="restock-item-info">
+                    <span className="restock-item-name">{item.name}</span>
+                    <span className="restock-item-meta">
+                      {item.area}
+                      {item.brand || item.model
+                        ? ` · ${item.brand ?? '—'} / ${item.model ?? '—'}`
+                        : ''}
+                    </span>
+                    <div className="restock-item-status-row">
+                      <span className="restock-current-stock">
+                        Current: <strong>{formatQty(item)}</strong>
+                      </span>
+                      {item.shoppingNote ? (
+                        <span className="restock-note">{item.shoppingNote}</span>
+                      ) : null}
+                    </div>
+                    {item.tags.length > 0 ? (
+                      <div className="restock-tags">
+                        {item.tags.map((tag) => (
+                          <span key={tag} className="restock-tag">{tag}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="restock-item-action">
+                    {isDone ? (
+                      <div className="restock-done-flash">
+                        <span className="restock-done-icon" aria-hidden="true">✓</span>
+                        <span>Updated</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="restock-qty-row">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={qty}
+                            aria-label={`New quantity for ${item.name}`}
+                            className="restock-qty-input"
+                            disabled={isSaving}
+                            onChange={(e) =>
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [item.articleId]: Number(e.target.value),
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                void handleRestock(item);
+                              }
+                            }}
+                          />
+                          {item.unit ? (
+                            <span className="restock-qty-unit">{item.unit}</span>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          className="restock-update-btn"
+                          disabled={isSaving}
+                          onClick={() => void handleRestock(item)}
+                        >
+                          {isSaving ? 'Saving…' : 'Update stock'}
+                        </button>
+                        <button
+                          type="button"
+                          className="restock-remove-btn"
+                          disabled={isSaving}
+                          onClick={() => void handleRemove(item)}
+                        >
+                          Remove
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
-    </section>
+    </div>
   );
 }

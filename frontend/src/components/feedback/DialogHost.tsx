@@ -16,7 +16,7 @@ export function DialogHost({ dialog, onClose }: DialogHostProps) {
       <div className="dialog-panel" role="dialog" aria-modal="true" aria-label={dialog.title}>
         <h2>{dialog.title}</h2>
         {dialog.description ? <p>{dialog.description}</p> : null}
-        <button type="button" onClick={onClose}>
+        <button type="button" className="btn-secondary" onClick={onClose}>
           Close
         </button>
       </div>

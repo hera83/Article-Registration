@@ -21,7 +21,10 @@ import { ArticleEditorForm } from '../components/articles/ArticleEditorForm';
 import { ShoppingListPanel } from '../components/shopping/ShoppingListPanel';
 import { ToastRegion } from '../components/feedback/ToastRegion';
 import { DialogHost } from '../components/feedback/DialogHost';
+import { NoteInputDialog } from '../components/feedback/NoteInputDialog';
 import { StatusCard } from '../components/feedback/StatusCard';
+import { SkeletonGrid } from '../components/feedback/SkeletonGrid';
+import { PageToolbar } from '../components/layout/PageToolbar';
 import { useToasts } from '../hooks/useToasts';
 import { getSearchInsight } from '../services/searchInsights';
 
@@ -52,6 +55,10 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
   const { toasts, push: pushToast, dismiss: dismissToast } = useToasts();
   const [dialog, setDialog] = useState<AppDialogState | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
+
+  type NoteDialogConfig = { article: Article; mode: 'addToShopping' | 'runOut' };
+  const [noteDialog, setNoteDialog] = useState<NoteDialogConfig | null>(null);
 
   const deferredQuery = useDeferredValue(filters.query);
   const effectiveFilters = useMemo(() => ({ ...filters, query: deferredQuery }), [filters, deferredQuery]);
@@ -120,6 +127,7 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
   async function handleCreate(input: Parameters<typeof createArticle>[0]) {
     const created = await createArticle(input);
     pushToast({ title: 'Article created', description: `${created.name} is now searchable before the next purchase.`, tone: 'success' });
+    setMobileEditorOpen(false);
     await refreshAll();
   }
 
@@ -127,6 +135,7 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
     const updated = await updateArticle(id, input);
     pushToast({ title: 'Article updated', description: `${updated.name} now has fresher search data.`, tone: 'success' });
     setEditingArticle(null);
+    setMobileEditorOpen(false);
     await refreshAll();
   }
 
@@ -141,11 +150,8 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
     await refreshAll();
   }
 
-  async function handleAddToShopping(article: Article) {
-    const shoppingNote = window.prompt('Shopping note (optional):', article.shoppingNote ?? '') ?? '';
-    await addToShoppingList(article.id, { shoppingNote });
-    pushToast({ title: 'Added to shopping list', description: `${article.name} is now marked so it does not get bought twice.`, tone: 'success' });
-    await refreshAll();
+  function handleAddToShopping(article: Article) {
+    setNoteDialog({ article, mode: 'addToShopping' });
   }
 
   async function handleRemoveFromShopping(article: Article) {
@@ -154,10 +160,21 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
     await refreshAll();
   }
 
-  async function handleRunOut(article: Article) {
-    const shoppingNote = window.prompt('Shopping note for refill:', article.shoppingNote ?? '') ?? '';
-    await runOut(article.id, { shoppingNote });
-    pushToast({ title: 'Marked as run out', description: `${article.name} is now visible in the shopping workspace.`, tone: 'info' });
+  function handleRunOut(article: Article) {
+    setNoteDialog({ article, mode: 'runOut' });
+  }
+
+  async function handleNoteConfirm(note: string) {
+    if (!noteDialog) return;
+    const { article, mode } = noteDialog;
+    setNoteDialog(null);
+    if (mode === 'addToShopping') {
+      await addToShoppingList(article.id, { shoppingNote: note });
+      pushToast({ title: 'Added to shopping list', description: `${article.name} is now marked so it does not get bought twice.`, tone: 'success' });
+    } else {
+      await runOut(article.id, { shoppingNote: note });
+      pushToast({ title: 'Marked as run out', description: `${article.name} is now visible in the shopping workspace.`, tone: 'info' });
+    }
     await refreshAll();
   }
 
@@ -177,12 +194,41 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
     setFilters(initialFilters);
   }
 
+  function handleOpenEdit(article: Article) {
+    setEditingArticle(article);
+    setMobileEditorOpen(true);
+  }
+
+  function handleNewArticle() {
+    setEditingArticle(null);
+    setMobileEditorOpen(true);
+  }
+
+  function handleCancelEdit() {
+    setEditingArticle(null);
+    setMobileEditorOpen(false);
+  }
+
   async function handleRetry() {
     await refreshAll();
   }
 
   return (
     <>
+      {activeView === 'inventory' ? (
+        <PageToolbar
+          title="Inventory"
+          subtitle="Search, register, and manage every article you own."
+          badge={!isInitialLoading && !error ? `${displayedArticles.length} items` : undefined}
+        />
+      ) : (
+        <PageToolbar
+          title="Shopping List"
+          subtitle="Update stock inline and clear items fast."
+          badge={!isInitialLoading && !error ? `${shoppingItems.length} items` : undefined}
+        />
+      )}
+
       <div className={`workspace-grid ${activeView === 'shopping' ? 'shopping-workspace' : ''}`}>
         <section className="left-rail">
           {activeView === 'inventory' ? (
@@ -197,7 +243,7 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
             />
           ) : null}
 
-          {isRefreshing ? <div className="panel refresh-banner">Refreshing data...</div> : null}
+          {isRefreshing ? <div className="refresh-indicator" role="progressbar" aria-label="Refreshing data" /> : null}
 
           {error && hasLoadedData ? (
             <div className="panel error-banner action-panel">
@@ -211,10 +257,12 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
             </div>
           ) : null}
 
-          {isInitialLoading ? <StatusCard title="Loading data" description="Fetching articles, areas, tags and shopping list." /> : null}
+          {isInitialLoading ? (
+            activeView === 'shopping' ? <SkeletonGrid variant="list" count={4} /> : <SkeletonGrid />
+          ) : null}
 
           {error && !hasLoadedData ? (
-            <StatusCard title="Could not load the workspace" description={error} tone="error" actionLabel="Try again" onAction={() => void handleRetry()} />
+            <StatusCard icon="⚠" title="Could not load the workspace" description={error} tone="error" actionLabel="Try again" onAction={() => void handleRetry()} />
           ) : null}
 
           {!isInitialLoading && !error && activeView === 'inventory' ? (
@@ -224,7 +272,7 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
               hasActiveFilters={hasActiveFilters}
               onClearFilters={handleResetFilters}
               insightsById={insightsById}
-              onOpenEdit={setEditingArticle}
+              onOpenEdit={handleOpenEdit}
               onArchiveToggle={handleArchiveToggle}
               onAddToShopping={handleAddToShopping}
               onRemoveFromShopping={handleRemoveFromShopping}
@@ -251,8 +299,8 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
               editingArticle={editingArticle}
               onCreate={handleCreate}
               onUpdate={handleUpdate}
-              onCancelEdit={() => setEditingArticle(null)}
-              onOpenExisting={setEditingArticle}
+              onCancelEdit={handleCancelEdit}
+              onOpenExisting={handleOpenEdit}
             />
 
             <ShoppingListPanel
@@ -267,6 +315,45 @@ export function InventoryPage({ activeView }: InventoryPageProps) {
 
       <ToastRegion items={toasts} onDismiss={dismissToast} />
       <DialogHost dialog={dialog} onClose={() => setDialog(null)} />
+      {noteDialog ? (
+        <NoteInputDialog
+          title={noteDialog.mode === 'addToShopping' ? 'Add to shopping list' : 'Mark as run out'}
+          description={
+            noteDialog.mode === 'addToShopping'
+              ? 'Optionally add a note for the shopping trip.'
+              : `This marks "${noteDialog.article.name}" as empty and adds it to the shopping list.`
+          }
+          noteLabel="Shopping note"
+          notePlaceholder="e.g. Buy the larger pack"
+          initialNote={noteDialog.article.shoppingNote ?? ''}
+          confirmLabel={noteDialog.mode === 'addToShopping' ? 'Add to list' : 'Mark as run out'}
+          onConfirm={(note) => void handleNoteConfirm(note)}
+          onClose={() => setNoteDialog(null)}
+        />
+      ) : null}
+
+      {activeView === 'inventory' ? (
+        <button type="button" className="mobile-fab" onClick={handleNewArticle} aria-label="New article">
+          +
+        </button>
+      ) : null}
+
+      {mobileEditorOpen ? (
+        <div className="mobile-editor-overlay" onClick={(e: React.MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) handleCancelEdit(); }}>
+          <div className="mobile-editor-drawer">
+            <ArticleEditorForm
+              areas={areas}
+              tags={tags}
+              existingArticles={articles}
+              editingArticle={editingArticle}
+              onCreate={handleCreate}
+              onUpdate={handleUpdate}
+              onCancelEdit={handleCancelEdit}
+              onOpenExisting={handleOpenEdit}
+            />
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

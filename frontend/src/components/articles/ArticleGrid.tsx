@@ -11,9 +11,9 @@ interface ArticleGridProps {
   insightsById: Record<string, SearchInsight>;
   onOpenEdit: (article: Article) => void;
   onArchiveToggle: (article: Article) => Promise<void>;
-  onAddToShopping: (article: Article) => Promise<void>;
+  onAddToShopping: (article: Article) => void;
   onRemoveFromShopping: (article: Article) => Promise<void>;
-  onRunOut: (article: Article) => Promise<void>;
+  onRunOut: (article: Article) => void;
 }
 
 export function ArticleGrid({
@@ -31,11 +31,12 @@ export function ArticleGrid({
   if (items.length === 0) {
     return (
       <StatusCard
+        icon={hasActiveFilters ? '🔍' : '📦'}
         title={hasActiveFilters ? 'No matching articles' : 'No articles yet'}
         description={
           hasActiveFilters
-            ? `Nothing matched ${query ? `“${query}”` : 'the current filters'}. Try fewer words, remove a filter, or open a likely existing item first.`
-            : 'Create your first article so future searches can stop duplicate buys before they happen.'
+            ? `Nothing matched ${query ? `"${query}"` : 'the current filters'}. Try fewer words or remove a filter.`
+            : 'Create your first article to start building your inventory.'
         }
         actionLabel={hasActiveFilters ? 'Clear filters' : undefined}
         onAction={hasActiveFilters ? onClearFilters : undefined}
@@ -44,7 +45,7 @@ export function ArticleGrid({
   }
 
   return (
-    <section className="article-grid">
+    <div className="article-grid">
       {items.map((item) => (
         <ArticleCard
           key={item.id}
@@ -57,6 +58,6 @@ export function ArticleGrid({
           onRunOut={onRunOut}
         />
       ))}
-    </section>
+    </div>
   );
 }

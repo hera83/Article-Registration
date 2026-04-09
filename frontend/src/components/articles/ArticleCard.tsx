@@ -6,9 +6,9 @@ interface ArticleCardProps {
   searchInsight?: SearchInsight;
   onOpenEdit: (article: Article) => void;
   onArchiveToggle: (article: Article) => Promise<void>;
-  onAddToShopping: (article: Article) => Promise<void>;
+  onAddToShopping: (article: Article) => void;
   onRemoveFromShopping: (article: Article) => Promise<void>;
-  onRunOut: (article: Article) => Promise<void>;
+  onRunOut: (article: Article) => void;
 }
 
 function formatQuantity(article: Article): string {
@@ -29,72 +29,89 @@ export function ArticleCard({ article, searchInsight, onOpenEdit, onArchiveToggl
           ? 'Related match'
           : null;
 
+  const isStock = article.articleType === 'stock';
+  const isEmpty = isStock && article.quantity === 0;
+  const hasMeta = article.brand || article.model;
+
   return (
-    <article className="article-card panel">
-      <header>
-        <div className="chip-row">
-          {duplicateLabel ? <span className={`chip duplicate-${searchInsight?.duplicateSignal}`}>{duplicateLabel}</span> : null}
-          <span className={`chip type-${article.articleType}`}>{article.articleType}</span>
-          <span className="chip">{article.area}</span>
-          {article.isOnShoppingList ? <span className="chip shopping">shopping</span> : null}
-          {article.isArchived ? <span className="chip">archived</span> : null}
-        </div>
-        <h3>{article.name}</h3>
+    <article className={`card ${isEmpty ? 'card-empty' : ''} ${article.isArchived ? 'card-archived' : ''}`}>
+      {/* ── Header: title + type badge ────────────────── */}
+      <header className="card-header">
+        <h3 className="card-title">{article.name}</h3>
+        <span className={`card-type-badge type-${article.articleType}`}>
+          {article.articleType === 'stock' ? 'Stock' : 'Standard'}
+        </span>
       </header>
 
-      <p className="meta-line">
-        {article.brand ?? 'No brand'}
-        {' · '}
-        {article.model ?? 'No model'}
-      </p>
+      {/* ── Meta: area, brand/model ───────────────────── */}
+      <div className="card-meta">
+        <span className="card-area">{article.area}</span>
+        {hasMeta && (
+          <span className="card-brand-model">
+            {[article.brand, article.model].filter(Boolean).join(' · ')}
+          </span>
+        )}
+        {article.typicalLocation && (
+          <span className="card-location">📍 {article.typicalLocation}</span>
+        )}
+      </div>
 
-      <p className="meta-line">Quantity: {formatQuantity(article)}</p>
+      {/* ── Quantity / status strip ───────────────────── */}
+      {isStock && (
+        <div className={`card-stock-strip ${isEmpty ? 'is-empty' : 'is-stocked'}`}>
+          <span className="card-stock-value">{formatQuantity(article)}</span>
+          <span className="card-stock-label">{isEmpty ? 'Out of stock' : 'In stock'}</span>
+        </div>
+      )}
 
-      {article.typicalLocation ? <p className="meta-line">Location: {article.typicalLocation}</p> : null}
+      {/* ── Status badges ─────────────────────────────── */}
+      <div className="card-badges">
+        {duplicateLabel && (
+          <span className={`badge badge-duplicate duplicate-${searchInsight?.duplicateSignal}`}>{duplicateLabel}</span>
+        )}
+        {article.isOnShoppingList && <span className="badge badge-shopping">On shopping list</span>}
+        {article.isArchived && <span className="badge badge-archived">Archived</span>}
+      </div>
 
-      {searchInsight && searchInsight.reasons.length > 0 ? (
-        <p className="match-summary">Matched in {searchInsight.reasons.slice(0, 3).join(', ').toLowerCase()}.</p>
-      ) : null}
+      {/* ── Search insight ────────────────────────────── */}
+      {searchInsight && searchInsight.reasons.length > 0 && (
+        <p className="card-match-hint">Matched in {searchInsight.reasons.slice(0, 3).join(', ').toLowerCase()}</p>
+      )}
 
-      {article.note ? <p className="note-preview">{article.note}</p> : null}
+      {/* ── Note ──────────────────────────────────────── */}
+      {article.note && <p className="card-note">{article.note}</p>}
 
-      {article.tags.length > 0 ? (
-        <div className="chip-row">
+      {/* ── Tags ──────────────────────────────────────── */}
+      {article.tags.length > 0 && (
+        <div className="card-tags">
           {article.tags.map((tag) => (
-            <span key={tag} className="chip muted">
-              {tag}
-            </span>
+            <span key={tag} className="tag">{tag}</span>
           ))}
         </div>
-      ) : null}
+      )}
 
-      <div className="action-row">
-        <button type="button" onClick={() => onOpenEdit(article)}>
-          Open / edit
+      {/* ── Actions ───────────────────────────────────── */}
+      <footer className="card-actions">
+        <button type="button" className="btn-primary-card" onClick={() => onOpenEdit(article)}>
+          Edit
         </button>
 
-        {article.articleType === 'stock' ? (
-          article.isOnShoppingList ? (
-            <button type="button" onClick={() => void onRemoveFromShopping(article)}>
-              Remove from list
-            </button>
-          ) : (
-            <button type="button" onClick={() => void onAddToShopping(article)}>
-              Add to list
-            </button>
-          )
-        ) : null}
-
-        {article.articleType === 'stock' ? (
-          <button type="button" onClick={() => void onRunOut(article)}>
-            Run out
+        <div className="card-secondary-actions">
+          {isStock && (
+            article.isOnShoppingList ? (
+              <button type="button" onClick={() => void onRemoveFromShopping(article)}>Remove from list</button>
+            ) : (
+              <button type="button" onClick={() => void onAddToShopping(article)}>Add to list</button>
+            )
+          )}
+          {isStock && (
+            <button type="button" className="btn-danger-ghost" onClick={() => void onRunOut(article)}>Run out</button>
+          )}
+          <button type="button" className={article.isArchived ? '' : 'btn-danger-ghost'} onClick={() => void onArchiveToggle(article)}>
+            {article.isArchived ? 'Reactivate' : 'Archive'}
           </button>
-        ) : null}
-
-        <button type="button" onClick={() => void onArchiveToggle(article)}>
-          {article.isArchived ? 'Reactivate' : 'Archive'}
-        </button>
-      </div>
+        </div>
+      </footer>
     </article>
   );
 }

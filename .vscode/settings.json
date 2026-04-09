@@ -12,17 +12,14 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "/^Set-Location \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm run build$/": {
+        "/^Set-Location .*$/": {
             "approve": true,
             "matchCommandLine": true
         },
-        "/^Set-Location \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm install --ignore-scripts$/": {
+        "/^cd \".*?\\\\Article Registration\\\\.*?\"; .*$/": {
             "approve": true,
             "matchCommandLine": true
         },
-        "/^cd \"c:\\\\Users\\\\h778\\\\Desktop\\\\Privat\\\\Article Registration\\\\frontend\"; npm run build$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
+        "Set-Content": true
     }
 }

@@ -14,8 +14,8 @@ export function ToastRegion({ items, onDismiss }: ToastRegionProps) {
             <strong>{item.title}</strong>
             {item.description ? <p>{item.description}</p> : null}
           </div>
-          <button type="button" onClick={() => onDismiss(item.id)}>
-            Close
+          <button type="button" aria-label="Dismiss" onClick={() => onDismiss(item.id)}>
+            ×
           </button>
         </article>
       ))}
