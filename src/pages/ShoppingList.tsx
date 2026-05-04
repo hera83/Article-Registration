@@ -85,13 +85,14 @@ function ShoppingRow({ article }: { article: Article }) {
             )}
           </div>
           <Button
-            size="sm"
+            size="icon"
+            variant="ghost"
             onClick={handleSave}
             disabled={saving}
             aria-label="Gem og fjern fra listen"
+            title="Gem"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            Gem
           </Button>
           <Button
             size="icon"
