@@ -154,8 +154,8 @@ const Settings = () => {
             placeholder="Nyt områdenavn"
             className="h-9"
           />
-          <Button onClick={handleCreateArea} size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" /> Tilføj
+          <Button onClick={handleCreateArea} size="icon" aria-label="Tilføj område" title="Tilføj">
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
         <div className="mt-3 divide-y">
