@@ -104,9 +104,12 @@ const Index = () => {
               title="Ingen resultater"
               description="Prøv en anden søgning eller fjern nogle filtre."
               action={
-                <Button variant="outline" onClick={() => setFilters(DEFAULT_FILTERS)}>
-                  Nulstil filtre
-                </Button>
+                <IconButton
+                  label="Nulstil filtre"
+                  icon={<RotateCcw className="h-4 w-4" />}
+                  variant="outline"
+                  onClick={() => setFilters(DEFAULT_FILTERS)}
+                />
               }
             />
           )
