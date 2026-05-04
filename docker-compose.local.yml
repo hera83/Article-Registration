@@ -1,0 +1,41 @@
+# Local self-contained deployment.
+# Brings up PostgreSQL + the combined frontend/backend container.
+# Hosted/Lovable mode is unaffected by this file.
+#
+# Usage:
+#   cp .env.local.example .env.local
+#   docker compose -f docker-compose.local.yml --env-file .env.local up --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-artikelregistrering}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-artikelregistrering}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-artikelregistrering}
+      PORT: 3001
+      HOST: 0.0.0.0
+    ports:
+      - "${APP_PORT:-3001}:3001"
+
+volumes:
+  db-data:

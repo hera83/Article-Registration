@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { data } from "@/data";
 import type { Tag } from "@/lib/types";
 
 const KEY = ["tags"] as const;
@@ -7,21 +7,15 @@ const KEY = ["tags"] as const;
 export function useTags() {
   return useQuery({
     queryKey: KEY,
-    queryFn: async (): Promise<Tag[]> => {
-      const { data, error } = await supabase.from("tags").select("id,name").order("name");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: (): Promise<Tag[]> => data.tags.list(),
   });
 }
 
 export function useRenameTag() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (vars: { id: string; name: string }) => {
-      const { error } = await supabase.from("tags").update({ name: vars.name.trim() }).eq("id", vars.id);
-      if (error) throw error;
-    },
+    mutationFn: (vars: { id: string; name: string }) =>
+      data.tags.rename(vars.id, vars.name),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
       qc.invalidateQueries({ queryKey: ["articles"] });
@@ -32,10 +26,7 @@ export function useRenameTag() {
 export function useDeleteTag() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tags").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => data.tags.remove(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
       qc.invalidateQueries({ queryKey: ["articles"] });

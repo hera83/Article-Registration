@@ -1,0 +1,7 @@
+# Ignore frontend build output and local env in Docker context to keep image small.
+node_modules
+dist
+.git
+.env
+.env.local
+*.log
