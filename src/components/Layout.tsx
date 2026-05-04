@@ -48,8 +48,10 @@ export function Layout() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1">
-            <ThemeToggle />
+          <div className="ml-auto flex h-10 items-center gap-1 self-center">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+              <ThemeToggle />
+            </div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
