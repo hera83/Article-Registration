@@ -90,9 +90,12 @@ const Index = () => {
               title="Ingen artikler endnu"
               description="Registrer din første genstand for at begynde dit personlige katalog."
               action={
-                <Button onClick={() => setCreating(true)}>
-                  <Plus className="mr-1.5 h-4 w-4" /> Tilføj artikel
-                </Button>
+                <IconButton
+                  label="Tilføj artikel"
+                  icon={<Plus className="h-4 w-4" />}
+                  variant="default"
+                  onClick={() => setCreating(true)}
+                />
               }
             />
           ) : (
