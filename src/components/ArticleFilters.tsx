@@ -168,9 +168,16 @@ export function ArticleFilters({ filters, onChange }: Props) {
             </section>
 
             {activeCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={reset} className="w-full">
-                <X className="mr-1.5 h-3.5 w-3.5" /> Nulstil filtre
-              </Button>
+              <div className="flex justify-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={reset} aria-label="Nulstil filtre">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Nulstil filtre</TooltipContent>
+                </Tooltip>
+              </div>
             )}
           </div>
         </PopoverContent>
