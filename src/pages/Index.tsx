@@ -67,9 +67,12 @@ const Index = () => {
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <ArticleFilters filters={filters} onChange={setFilters} />
-          <Button variant="outline" size="sm" onClick={() => setCreating(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Ny artikel
-          </Button>
+          <IconButton
+            label="Ny artikel"
+            icon={<Plus className="h-4 w-4" />}
+            variant="outline"
+            onClick={() => setCreating(true)}
+          />
         </div>
       </section>
 
