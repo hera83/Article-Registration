@@ -119,7 +119,7 @@ function ShoppingRow({ article }: { article: Article }) {
         confirmLabel="Fjern"
         onConfirm={async () => {
           try {
-            await update.mutateAsync({ id: article.id, patch: { on_shopping_list: false } });
+            await update.mutateAsync({ id: article.id, patch: { on_shopping_list: false, shopping_note: null } });
             toast.success(`Fjernet ${article.name} fra listen`);
           } catch (e) {
             toast.error(e instanceof Error ? e.message : "Kunne ikke fjerne");
