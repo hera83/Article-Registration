@@ -49,6 +49,7 @@ export function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
@@ -68,7 +69,6 @@ export function Layout() {
               </TooltipTrigger>
               <TooltipContent>{SETTINGS.label}</TooltipContent>
             </Tooltip>
-            <ThemeToggle />
           </div>
         </div>
       </header>
