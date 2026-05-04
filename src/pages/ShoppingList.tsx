@@ -132,14 +132,13 @@ function ShoppingRow({ article }: { article: Article }) {
 const ShoppingList = () => {
   const { data: articles = [], isLoading } = useArticles();
   const items = articles.filter((a) => a.on_shopping_list && !a.archived);
-  const [editing, setEditing] = useState<Article | null>(null);
 
   return (
     <div className="container max-w-3xl py-8 md:py-12">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Indkøbsliste</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Opdater antallet, når du har fyldt op. Varen forsvinder automatisk fra listen.
+          Indtast antallet du har købt og tryk Gem — varen fjernes fra listen.
         </p>
       </header>
 
@@ -158,17 +157,10 @@ const ShoppingList = () => {
       ) : (
         <div className="space-y-2.5 animate-fade-in">
           {items.map((a) => (
-            <ShoppingRow key={a.id} article={a} onOpen={setEditing} />
+            <ShoppingRow key={a.id} article={a} />
           ))}
         </div>
       )}
-
-      <ArticleDialog
-        open={!!editing}
-        onOpenChange={(o) => !o && setEditing(null)}
-        mode="edit"
-        article={editing ?? undefined}
-      />
     </div>
   );
 };
