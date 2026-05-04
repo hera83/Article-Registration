@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { ArticleDialog } from "@/components/ArticleDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import type { Article } from "@/lib/types";
 
@@ -14,6 +15,7 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
   const update = useUpdateArticleFields();
   const [qty, setQty] = useState<string>(article.quantity != null ? String(article.quantity) : "0");
   const [saving, setSaving] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const commit = async () => {
     const n = Number(qty);
@@ -28,10 +30,10 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
           : { quantity: n },
       });
       if (removeFromList) {
-        toast.success(`${article.name} restocked`, { description: "Removed from shopping list" });
+        toast.success(`${article.name} er fyldt op`, { description: "Fjernet fra indkøbslisten" });
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to update");
+      toast.error(e instanceof Error ? e.message : "Kunne ikke opdatere");
     } finally {
       setSaving(false);
     }
@@ -80,30 +82,48 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
               }}
               className="h-9 w-20 text-center"
-              aria-label={`Quantity for ${article.name}`}
+              aria-label={`Antal for ${article.name}`}
             />
             {article.unit && (
               <span className="text-xs text-muted-foreground w-8">{article.unit}</span>
             )}
             {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           </div>
-          <Button size="icon" variant="ghost" onClick={() => onOpen(article)} aria-label="Open article" title="Open article">
+          <Button size="icon" variant="ghost" onClick={() => onOpen(article)} aria-label="Åbn artikel" title="Åbn artikel">
             <ExternalLink className="h-4 w-4" />
           </Button>
           <Button
             size="icon"
             variant="ghost"
-            onClick={async () => {
-              await update.mutateAsync({ id: article.id, patch: { on_shopping_list: false } });
-              toast.success(`Removed ${article.name} from list`);
-            }}
-            aria-label="Remove from shopping list"
-            title="Remove from list"
+            onClick={() => setConfirmRemove(true)}
+            aria-label="Fjern fra indkøbslisten"
+            title="Fjern fra listen"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmRemove}
+        onOpenChange={setConfirmRemove}
+        title="Fjern fra indkøbslisten?"
+        description={
+          <>
+            Vil du fjerne <span className="font-medium text-foreground">{article.name}</span> fra
+            indkøbslisten? Selve artiklen bliver ikke slettet.
+          </>
+        }
+        confirmLabel="Fjern"
+        onConfirm={async () => {
+          try {
+            await update.mutateAsync({ id: article.id, patch: { on_shopping_list: false } });
+            toast.success(`Fjernet ${article.name} fra listen`);
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Kunne ikke fjerne");
+          }
+        }}
+      />
     </Card>
   );
 }
@@ -116,9 +136,9 @@ const ShoppingList = () => {
   return (
     <div className="container max-w-3xl py-8 md:py-12">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Shopping list</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Indkøbsliste</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Update quantity when you put something back. It leaves the list automatically.
+          Opdater antallet, når du har fyldt op. Varen forsvinder automatisk fra listen.
         </p>
       </header>
 
@@ -131,8 +151,8 @@ const ShoppingList = () => {
       ) : items.length === 0 ? (
         <EmptyState
           icon={<ListChecks className="h-10 w-10" />}
-          title="Nothing to buy"
-          description="Stock items you mark as needed will appear here."
+          title="Intet at købe"
+          description="Lagervarer, du markerer som nødvendige, vises her."
         />
       ) : (
         <div className="space-y-2.5 animate-fade-in">

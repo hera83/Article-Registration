@@ -37,9 +37,9 @@ export function ArticleFilters({ filters, onChange }: Props) {
         onValueChange={(v) => update("type", v as Filters["type"])}
       >
         <TabsList className="h-9">
-          <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+          <TabsTrigger value="all" className="text-xs">Alle</TabsTrigger>
           <TabsTrigger value="normal" className="text-xs">Normal</TabsTrigger>
-          <TabsTrigger value="stock" className="text-xs">Stock</TabsTrigger>
+          <TabsTrigger value="stock" className="text-xs">Lager</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -47,7 +47,7 @@ export function ArticleFilters({ filters, onChange }: Props) {
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="gap-1.5">
             <Filter className="h-3.5 w-3.5" />
-            Filters
+            Filtre
             {activeCount > 0 && (
               <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
                 {activeCount}
@@ -58,7 +58,7 @@ export function ArticleFilters({ filters, onChange }: Props) {
         <PopoverContent align="start" className="w-80 p-4">
           <div className="space-y-4">
             <section>
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Areas</Label>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Områder</Label>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {areas.map((a) => {
                   const on = filters.areaIds.includes(a.id);
@@ -82,6 +82,9 @@ export function ArticleFilters({ filters, onChange }: Props) {
                     </button>
                   );
                 })}
+                {areas.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Ingen områder.</p>
+                )}
               </div>
             </section>
 
@@ -112,32 +115,35 @@ export function ArticleFilters({ filters, onChange }: Props) {
                     </button>
                   );
                 })}
+                {tags.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Ingen tags.</p>
+                )}
               </div>
             </section>
 
             <section className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Shopping</Label>
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Indkøb</Label>
                 <select
                   value={filters.shopping}
                   onChange={(e) => update("shopping", e.target.value as Filters["shopping"])}
                   className="mt-1.5 w-full h-8 rounded-md border border-input bg-background px-2 text-xs"
                 >
-                  <option value="all">All</option>
-                  <option value="on">On list</option>
-                  <option value="off">Not on list</option>
+                  <option value="all">Alle</option>
+                  <option value="on">På listen</option>
+                  <option value="off">Ikke på listen</option>
                 </select>
               </div>
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Stock</Label>
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Lager</Label>
                 <select
                   value={filters.stock}
                   onChange={(e) => update("stock", e.target.value as Filters["stock"])}
                   className="mt-1.5 w-full h-8 rounded-md border border-input bg-background px-2 text-xs"
                 >
-                  <option value="all">All</option>
-                  <option value="in">In stock</option>
-                  <option value="empty">Empty</option>
+                  <option value="all">Alle</option>
+                  <option value="in">På lager</option>
+                  <option value="empty">Tom</option>
                 </select>
               </div>
             </section>
@@ -149,13 +155,13 @@ export function ArticleFilters({ filters, onChange }: Props) {
                 onCheckedChange={(v) => update("status", v ? "all" : "active")}
               />
               <Label htmlFor="archived" className="text-sm font-normal">
-                Include archived
+                Inkludér arkiverede
               </Label>
             </section>
 
             {activeCount > 0 && (
               <Button variant="ghost" size="sm" onClick={reset} className="w-full">
-                <X className="mr-1.5 h-3.5 w-3.5" /> Reset filters
+                <X className="mr-1.5 h-3.5 w-3.5" /> Nulstil filtre
               </Button>
             )}
           </div>

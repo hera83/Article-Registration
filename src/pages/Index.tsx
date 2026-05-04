@@ -24,11 +24,11 @@ const Index = () => {
 
   const handleMarkEmpty = async (a: Article) => {
     await updateFields.mutateAsync({ id: a.id, patch: { quantity: 0 } });
-    toast.success(`${a.name} marked as empty`, {
+    toast.success(`${a.name} markeret som tom`, {
       action: a.on_shopping_list
         ? undefined
         : {
-            label: "Add to list",
+            label: "Tilføj til liste",
             onClick: () => updateFields.mutate({ id: a.id, patch: { on_shopping_list: true } }),
           },
     });
@@ -37,30 +37,30 @@ const Index = () => {
   const handleToggleShopping = async (a: Article) => {
     const next = !a.on_shopping_list;
     await updateFields.mutateAsync({ id: a.id, patch: { on_shopping_list: next } });
-    toast.success(next ? `Added "${a.name}" to shopping list` : `Removed "${a.name}" from list`);
+    toast.success(next ? `Tilføjet "${a.name}" til indkøbslisten` : `Fjernet "${a.name}" fra listen`);
   };
 
   return (
     <div className="container max-w-5xl py-8 md:py-12">
       <section className="text-center mb-8 md:mb-10">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Find anything you own</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Find alt det, du ejer</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Search, register, and restock your personal articles.
+          Søg, registrer og hold styr på dine personlige artikler.
         </p>
         <div className="relative mt-6 max-w-2xl mx-auto">
           <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={filters.q}
             onChange={(e) => setFilters({ ...filters, q: e.target.value })}
-            placeholder="Search by name, brand, model, tag…"
+            placeholder="Søg på navn, mærke, model, tag…"
             className="h-12 pl-10 pr-4 text-base shadow-elev-sm"
-            aria-label="Search articles"
+            aria-label="Søg artikler"
           />
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <ArticleFilters filters={filters} onChange={setFilters} />
           <Button variant="outline" size="sm" onClick={() => setCreating(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New article
+            <Plus className="h-3.5 w-3.5" /> Ny artikel
           </Button>
         </div>
       </section>
@@ -76,22 +76,22 @@ const Index = () => {
           articles.length === 0 ? (
             <EmptyState
               icon={<SearchIcon className="h-10 w-10" />}
-              title="No articles yet"
-              description="Register your first item to start building your personal catalog."
+              title="Ingen artikler endnu"
+              description="Registrer din første genstand for at begynde dit personlige katalog."
               action={
                 <Button onClick={() => setCreating(true)}>
-                  <Plus className="mr-1.5 h-4 w-4" /> Add article
+                  <Plus className="mr-1.5 h-4 w-4" /> Tilføj artikel
                 </Button>
               }
             />
           ) : (
             <EmptyState
               icon={<SearchX className="h-10 w-10" />}
-              title="No matches"
-              description="Try a different search term or clear some filters."
+              title="Ingen resultater"
+              description="Prøv en anden søgning eller fjern nogle filtre."
               action={
                 <Button variant="outline" onClick={() => setFilters(DEFAULT_FILTERS)}>
-                  Reset filters
+                  Nulstil filtre
                 </Button>
               }
             />
@@ -99,7 +99,7 @@ const Index = () => {
         ) : (
           <>
             <p className="mb-3 text-xs text-muted-foreground">
-              {results.length} {results.length === 1 ? "article" : "articles"}
+              {results.length} {results.length === 1 ? "artikel" : "artikler"}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
               {results.map((a) => (

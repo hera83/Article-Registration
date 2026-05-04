@@ -12,6 +12,11 @@ interface Props {
   onToggleShopping: (a: Article) => void;
 }
 
+const TYPE_LABEL: Record<Article["article_type"], string> = {
+  normal: "Normal",
+  stock: "Lager",
+};
+
 export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: Props) {
   const isStock = article.article_type === "stock";
   const qty = article.quantity ?? 0;
@@ -28,7 +33,7 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
         <button
           onClick={() => onEdit(article)}
           className="text-left flex-1 min-w-0"
-          aria-label={`Edit ${article.name}`}
+          aria-label={`Rediger ${article.name}`}
         >
           <h3 className="font-medium leading-tight truncate">{article.name}</h3>
           {(article.brand || article.model) && (
@@ -37,8 +42,8 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
             </p>
           )}
         </button>
-        <Badge variant={isStock ? "default" : "outline"} className="shrink-0 capitalize">
-          {article.article_type}
+        <Badge variant={isStock ? "default" : "outline"} className="shrink-0">
+          {TYPE_LABEL[article.article_type]}
         </Badge>
       </div>
 
@@ -70,19 +75,19 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
                   : "bg-success/15 text-success"
               )}
             >
-              {empty ? "Empty" : `${qty}${article.unit ? ` ${article.unit}` : ""}`}
+              {empty ? "Tom" : `${qty}${article.unit ? ` ${article.unit}` : ""}`}
             </span>
           )}
           {article.on_shopping_list && (
             <span className="inline-flex items-center gap-1 rounded-md bg-info/15 px-2 py-0.5 text-xs font-medium text-info">
               <ShoppingCart className="h-3 w-3" />
-              On list
+              På liste
             </span>
           )}
           {article.archived && (
             <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               <Archive className="h-3 w-3" />
-              Archived
+              Arkiveret
             </span>
           )}
         </div>
@@ -94,8 +99,8 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
               variant="ghost"
               className="h-7 w-7"
               onClick={() => onMarkEmpty(article)}
-              aria-label="Mark as empty"
-              title="Mark as empty"
+              aria-label="Markér som tom"
+              title="Markér som tom"
             >
               <MinusCircle className="h-4 w-4" />
             </Button>
@@ -105,8 +110,8 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
             variant="ghost"
             className="h-7 w-7"
             onClick={() => onToggleShopping(article)}
-            aria-label={article.on_shopping_list ? "Remove from shopping list" : "Add to shopping list"}
-            title={article.on_shopping_list ? "Remove from list" : "Add to shopping list"}
+            aria-label={article.on_shopping_list ? "Fjern fra indkøbslisten" : "Tilføj til indkøbslisten"}
+            title={article.on_shopping_list ? "Fjern fra listen" : "Tilføj til indkøbslisten"}
           >
             <ShoppingCart className={cn("h-4 w-4", article.on_shopping_list && "text-info")} />
           </Button>
@@ -115,8 +120,8 @@ export function ArticleCard({ article, onEdit, onMarkEmpty, onToggleShopping }: 
             variant="ghost"
             className="h-7 w-7"
             onClick={() => onEdit(article)}
-            aria-label="Edit article"
-            title="Edit"
+            aria-label="Rediger artikel"
+            title="Rediger"
           >
             <Edit3 className="h-4 w-4" />
           </Button>
