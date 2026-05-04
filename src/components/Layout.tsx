@@ -80,7 +80,7 @@ export function Layout() {
       {/* Mobil bundnavigation */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur">
         <div className="grid grid-cols-3">
-          {[...NAV, SETTINGS].map(({ to, label, icon: Icon, end }) => (
+          {[...NAV, { ...SETTINGS, end: false }].map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
