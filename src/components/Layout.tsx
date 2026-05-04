@@ -1,10 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Boxes, ListChecks, Plus, Search, Settings as SettingsIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Boxes, ListChecks, Search, Settings as SettingsIcon } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { ArticleDialog } from "./ArticleDialog";
 
 const NAV = [
   { to: "/", label: "Søg", icon: Search, end: true },
@@ -13,7 +10,6 @@ const NAV = [
 ];
 
 export function Layout() {
-  const [openNew, setOpenNew] = useState(false);
   const navigate = useNavigate();
 
   return (
