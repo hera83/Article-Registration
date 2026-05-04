@@ -1,10 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Boxes, ListChecks, Plus, Search, Settings as SettingsIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Boxes, ListChecks, Search, Settings as SettingsIcon } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { ArticleDialog } from "./ArticleDialog";
 
 const NAV = [
   { to: "/", label: "Søg", icon: Search, end: true },
@@ -13,7 +10,6 @@ const NAV = [
 ];
 
 export function Layout() {
-  const [openNew, setOpenNew] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -51,9 +47,6 @@ export function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button onClick={() => setOpenNew(true)} size="icon" aria-label="Tilføj artikel" title="Tilføj artikel">
-              <Plus className="h-4 w-4" />
-            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -85,7 +78,7 @@ export function Layout() {
         </div>
       </nav>
 
-      <ArticleDialog open={openNew} onOpenChange={setOpenNew} mode="create" />
+      
     </div>
   );
 }
