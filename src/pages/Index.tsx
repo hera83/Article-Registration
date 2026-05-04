@@ -8,6 +8,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleDialog } from "@/components/ArticleDialog";
 import { ArticleFilters } from "@/components/ArticleFilters";
 import { EmptyState } from "@/components/EmptyState";
+import { ShoppingNoteDialog } from "@/components/ShoppingNoteDialog";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import { filterArticles } from "@/lib/search";
 import { DEFAULT_FILTERS, type Article, type Filters } from "@/lib/types";
@@ -19,6 +20,7 @@ const Index = () => {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [editing, setEditing] = useState<Article | null>(null);
   const [creating, setCreating] = useState(false);
+  const [noteFor, setNoteFor] = useState<Article | null>(null);
 
   const results = useMemo(() => filterArticles(articles, filters), [articles, filters]);
 
@@ -29,15 +31,21 @@ const Index = () => {
         ? undefined
         : {
             label: "Tilføj til liste",
-            onClick: () => updateFields.mutate({ id: a.id, patch: { on_shopping_list: true } }),
+            onClick: () => setNoteFor(a),
           },
     });
   };
 
   const handleToggleShopping = async (a: Article) => {
-    const next = !a.on_shopping_list;
-    await updateFields.mutateAsync({ id: a.id, patch: { on_shopping_list: next } });
-    toast.success(next ? `Tilføjet "${a.name}" til indkøbslisten` : `Fjernet "${a.name}" fra listen`);
+    if (a.on_shopping_list) {
+      await updateFields.mutateAsync({
+        id: a.id,
+        patch: { on_shopping_list: false, shopping_note: null },
+      });
+      toast.success(`Fjernet "${a.name}" fra listen`);
+    } else {
+      setNoteFor(a);
+    }
   };
 
   return (
