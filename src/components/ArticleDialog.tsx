@@ -138,165 +138,188 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? "Tilføj artikel" : "Rediger artikel"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="name">Navn</Label>
-            <Input
-              id="name"
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              placeholder="f.eks. RJ45 CAT6 stik"
-              autoFocus
-              className="mt-1.5"
-            />
-            {similar.length > 0 && (
-              <div className="mt-2 rounded-md border border-warning/30 bg-warning/5 p-2.5">
-                <p className="text-xs font-medium text-warning">Mulige dubletter:</p>
-                <ul className="mt-1 space-y-0.5 text-sm">
-                  {similar.map((s) => (
-                    <li key={s.id} className="text-muted-foreground">
-                      • <span className="text-foreground">{s.name}</span>
-                      {s.brand && <span className="text-xs"> · {s.brand}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <Label>Type</Label>
-            <Tabs
-              value={form.article_type}
-              onValueChange={(v) => update("article_type", v as ArticleType)}
-              className="mt-1.5"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="normal">Normal</TabsTrigger>
-                <TabsTrigger value="stock">Lager</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Område</Label>
-              <Select
-                value={form.area_id ?? "none"}
-                onValueChange={(v) => update("area_id", v === "none" ? null : v)}
-              >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Vælg område" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Intet område</SelectItem>
-                  {areas.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="loc">Typisk placering</Label>
-              <Input
-                id="loc"
-                value={form.typical_location}
-                onChange={(e) => update("typical_location", e.target.value)}
-                placeholder="f.eks. Garagehylde"
-                className="mt-1.5"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="brand">Mærke</Label>
-              <Input id="brand" value={form.brand} onChange={(e) => update("brand", e.target.value)} className="mt-1.5" />
-            </div>
-            <div>
-              <Label htmlFor="model">Model</Label>
-              <Input id="model" value={form.model} onChange={(e) => update("model", e.target.value)} className="mt-1.5" />
-            </div>
-          </div>
-
-          <div>
-            <Label>Tags</Label>
-            <div className="mt-1.5">
-              <TagInput value={form.tagNames} onChange={(v) => update("tagNames", v)} />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="note">Note</Label>
-            <Textarea
-              id="note"
-              value={form.note}
-              onChange={(e) => update("note", e.target.value)}
-              placeholder="Valgfri beskrivelse eller noter"
-              className="mt-1.5 min-h-[72px]"
-            />
-          </div>
-
-          {isStock && (
-            <div className="rounded-lg border bg-secondary/30 p-3 space-y-3 animate-fade-in">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Lager</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="qty">Antal</Label>
-                  <Input
-                    id="qty"
-                    type="number"
-                    inputMode="decimal"
-                    value={form.quantity}
-                    onChange={(e) => update("quantity", e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="unit">Enhed</Label>
-                  <Input
-                    id="unit"
-                    value={form.unit}
-                    onChange={(e) => update("unit", e.target.value)}
-                    placeholder="stk, m, L…"
-                    className="mt-1.5"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="onlist" className="text-sm font-normal">På indkøbslisten</Label>
-                <Switch
-                  id="onlist"
-                  checked={form.on_shopping_list}
-                  onCheckedChange={(v) => update("on_shopping_list", v)}
-                />
-              </div>
-              {form.on_shopping_list && (
-                <div>
-                  <Label htmlFor="snote">Indkøbsnote</Label>
-                  <Input
-                    id="snote"
-                    value={form.shopping_note}
-                    onChange={(e) => update("shopping_note", e.target.value)}
-                    placeholder="f.eks. Køb en pose med 100"
-                    className="mt-1.5"
-                  />
-                </div>
-              )}
+        {/* Navn fylder fuld bredde */}
+        <div className="mt-2">
+          <Label htmlFor="name">Navn</Label>
+          <Input
+            id="name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            placeholder="f.eks. RJ45 CAT6 stik"
+            autoFocus
+            className="mt-1.5"
+          />
+          {similar.length > 0 && (
+            <div className="mt-2 rounded-md border border-warning/30 bg-warning/5 p-2.5">
+              <p className="text-xs font-medium text-warning">Mulige dubletter:</p>
+              <ul className="mt-1 space-y-0.5 text-sm">
+                {similar.map((s) => (
+                  <li key={s.id} className="text-muted-foreground">
+                    • <span className="text-foreground">{s.name}</span>
+                    {s.brand && <span className="text-xs"> · {s.brand}</span>}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
+        </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <Label htmlFor="arch" className="text-sm font-normal">Arkiveret</Label>
-            <Switch id="arch" checked={form.archived} onCheckedChange={(v) => update("archived", v)} />
-          </div>
+        {/* To kolonner: Meta | Lager */}
+        <div className="mt-4 grid gap-5 md:grid-cols-2 md:gap-6">
+          {/* Venstre: Meta */}
+          <section className="space-y-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Detaljer
+            </p>
+
+            <div>
+              <Label>Type</Label>
+              <Tabs
+                value={form.article_type}
+                onValueChange={(v) => update("article_type", v as ArticleType)}
+                className="mt-1.5"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="normal">Normal</TabsTrigger>
+                  <TabsTrigger value="stock">Lager</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Område</Label>
+                <Select
+                  value={form.area_id ?? "none"}
+                  onValueChange={(v) => update("area_id", v === "none" ? null : v)}
+                >
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Vælg område" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Intet område</SelectItem>
+                    {areas.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="loc">Typisk placering</Label>
+                <Input
+                  id="loc"
+                  value={form.typical_location}
+                  onChange={(e) => update("typical_location", e.target.value)}
+                  placeholder="f.eks. Garagehylde"
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="brand">Mærke</Label>
+                <Input id="brand" value={form.brand} onChange={(e) => update("brand", e.target.value)} className="mt-1.5" />
+              </div>
+              <div>
+                <Label htmlFor="model">Model</Label>
+                <Input id="model" value={form.model} onChange={(e) => update("model", e.target.value)} className="mt-1.5" />
+              </div>
+            </div>
+
+            <div>
+              <Label>Tags</Label>
+              <div className="mt-1.5">
+                <TagInput value={form.tagNames} onChange={(v) => update("tagNames", v)} />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="note">Note</Label>
+              <Textarea
+                id="note"
+                value={form.note}
+                onChange={(e) => update("note", e.target.value)}
+                placeholder="Valgfri beskrivelse eller noter"
+                className="mt-1.5 min-h-[88px]"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <Label htmlFor="arch" className="text-sm font-normal">Arkiveret</Label>
+              <Switch id="arch" checked={form.archived} onCheckedChange={(v) => update("archived", v)} />
+            </div>
+          </section>
+
+          {/* Højre: Lager */}
+          <section className="md:border-l md:pl-6 space-y-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Lager
+            </p>
+
+            {isStock ? (
+              <div className="space-y-4 animate-fade-in">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="qty">Antal</Label>
+                    <Input
+                      id="qty"
+                      type="number"
+                      inputMode="decimal"
+                      value={form.quantity}
+                      onChange={(e) => update("quantity", e.target.value)}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="unit">Enhed</Label>
+                    <Input
+                      id="unit"
+                      value={form.unit}
+                      onChange={(e) => update("unit", e.target.value)}
+                      placeholder="stk, m, L…"
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-secondary/30 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="onlist" className="text-sm font-normal">På indkøbslisten</Label>
+                    <Switch
+                      id="onlist"
+                      checked={form.on_shopping_list}
+                      onCheckedChange={(v) => update("on_shopping_list", v)}
+                    />
+                  </div>
+                  {form.on_shopping_list && (
+                    <div>
+                      <Label htmlFor="snote">Indkøbsnote</Label>
+                      <Input
+                        id="snote"
+                        value={form.shopping_note}
+                        onChange={(e) => update("shopping_note", e.target.value)}
+                        placeholder="f.eks. Køb en pose med 100"
+                        className="mt-1.5"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                Skift type til <span className="font-medium text-foreground">Lager</span> for at
+                holde styr på antal og indkøbsliste.
+              </div>
+            )}
+          </section>
         </div>
 
         <DialogFooter className="flex-row items-center justify-between sm:justify-between gap-2">
