@@ -1,39 +1,36 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { ExternalLink, ListChecks, Loader2, Trash2 } from "lucide-react";
+import { Check, ListChecks, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { ArticleDialog } from "@/components/ArticleDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import type { Article } from "@/lib/types";
 
-function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Article) => void }) {
+function ShoppingRow({ article }: { article: Article }) {
   const update = useUpdateArticleFields();
   const [qty, setQty] = useState<string>(article.quantity != null ? String(article.quantity) : "0");
   const [saving, setSaving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const commit = async () => {
+  const handleSave = async () => {
     const n = Number(qty);
-    if (Number.isNaN(n) || n === (article.quantity ?? 0)) return;
+    if (Number.isNaN(n)) {
+      toast.error("Ugyldigt antal");
+      return;
+    }
     setSaving(true);
     try {
-      const removeFromList = n > 0;
       await update.mutateAsync({
         id: article.id,
-        patch: removeFromList
-          ? { quantity: n, on_shopping_list: false }
-          : { quantity: n },
+        patch: { quantity: n, on_shopping_list: false },
       });
-      if (removeFromList) {
-        toast.success(`${article.name} er fyldt op`, { description: "Fjernet fra indkøbslisten" });
-      }
+      toast.success(`${article.name} er gemt`, { description: "Fjernet fra indkøbslisten" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Kunne ikke opdatere");
+      toast.error(e instanceof Error ? e.message : "Kunne ikke gemme");
     } finally {
       setSaving(false);
     }
@@ -77,9 +74,8 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
               inputMode="decimal"
               value={qty}
               onChange={(e) => setQty(e.target.value)}
-              onBlur={commit}
               onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                if (e.key === "Enter") handleSave();
               }}
               className="h-9 w-20 text-center"
               aria-label={`Antal for ${article.name}`}
@@ -87,17 +83,22 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
             {article.unit && (
               <span className="text-xs text-muted-foreground w-8">{article.unit}</span>
             )}
-            {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           </div>
-          <Button size="icon" variant="ghost" onClick={() => onOpen(article)} aria-label="Åbn artikel" title="Åbn artikel">
-            <ExternalLink className="h-4 w-4" />
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving}
+            aria-label="Gem og fjern fra listen"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Gem
           </Button>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => setConfirmRemove(true)}
-            aria-label="Fjern fra indkøbslisten"
-            title="Fjern fra listen"
+            aria-label="Slet fra indkøbslisten"
+            title="Slet fra listen"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -131,14 +132,13 @@ function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Articl
 const ShoppingList = () => {
   const { data: articles = [], isLoading } = useArticles();
   const items = articles.filter((a) => a.on_shopping_list && !a.archived);
-  const [editing, setEditing] = useState<Article | null>(null);
 
   return (
     <div className="container max-w-3xl py-8 md:py-12">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Indkøbsliste</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Opdater antallet, når du har fyldt op. Varen forsvinder automatisk fra listen.
+          Indtast antallet du har købt og tryk Gem — varen fjernes fra listen.
         </p>
       </header>
 
@@ -157,17 +157,10 @@ const ShoppingList = () => {
       ) : (
         <div className="space-y-2.5 animate-fade-in">
           {items.map((a) => (
-            <ShoppingRow key={a.id} article={a} onOpen={setEditing} />
+            <ShoppingRow key={a.id} article={a} />
           ))}
         </div>
       )}
-
-      <ArticleDialog
-        open={!!editing}
-        onOpenChange={(o) => !o && setEditing(null)}
-        mode="edit"
-        article={editing ?? undefined}
-      />
     </div>
   );
 };
