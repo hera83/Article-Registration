@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, RotateCcw, Search as SearchIcon, SearchX } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,55 @@ import { ArticleDialog } from "@/components/ArticleDialog";
 import { ArticleFilters } from "@/components/ArticleFilters";
 import { EmptyState } from "@/components/EmptyState";
 import { ShoppingNoteDialog } from "@/components/ShoppingNoteDialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import { filterArticles } from "@/lib/search";
 import { DEFAULT_FILTERS, type Article, type Filters } from "@/lib/types";
+
+const ROWS_PER_PAGE = 3;
+
+function useColumnCount(ref: React.RefObject<HTMLElement>) {
+  const [cols, setCols] = useState(1);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const compute = () => {
+      const style = window.getComputedStyle(el);
+      const template = style.gridTemplateColumns;
+      const count = template && template !== "none" ? template.split(" ").length : 1;
+      setCols(Math.max(1, count));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    window.addEventListener("resize", compute);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, [ref]);
+  return cols;
+}
+
+function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "ellipsis")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) pages.push("ellipsis");
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < total - 1) pages.push("ellipsis");
+  pages.push(total);
+  return pages;
+}
 
 const Index = () => {
   const { data: articles = [], isLoading } = useArticles();
@@ -21,8 +67,23 @@ const Index = () => {
   const [editing, setEditing] = useState<Article | null>(null);
   const [creating, setCreating] = useState(false);
   const [noteFor, setNoteFor] = useState<Article | null>(null);
+  const [page, setPage] = useState(1);
 
   const results = useMemo(() => filterArticles(articles, filters), [articles, filters]);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const cols = useColumnCount(gridRef);
+  const pageSize = cols * ROWS_PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters, pageSize]);
+
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageItems = results.slice(startIdx, startIdx + pageSize);
+
 
   const handleMarkEmpty = async (a: Article) => {
     await updateFields.mutateAsync({ id: a.id, patch: { quantity: 0 } });
@@ -117,9 +178,15 @@ const Index = () => {
           <>
             <p className="mb-3 text-xs text-muted-foreground">
               {results.length} {results.length === 1 ? "artikel" : "artikler"}
+              {totalPages > 1 && (
+                <> · side {currentPage} af {totalPages}</>
+              )}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
-              {results.map((a) => (
+            <div
+              ref={gridRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in"
+            >
+              {pageItems.map((a) => (
                 <ArticleCard
                   key={a.id}
                   article={a}
@@ -129,6 +196,54 @@ const Index = () => {
                 />
               ))}
             </div>
+            {totalPages > 1 && (
+              <Pagination className="mt-6">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      aria-disabled={currentPage === 1}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) setPage(currentPage - 1);
+                      }}
+                    />
+                  </PaginationItem>
+                  {getPageNumbers(currentPage, totalPages).map((p, i) =>
+                    p === "ellipsis" ? (
+                      <PaginationItem key={`e-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href="#"
+                          isActive={p === currentPage}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(p);
+                          }}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      aria-disabled={currentPage === totalPages}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) setPage(currentPage + 1);
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </>
         )}
       </section>
