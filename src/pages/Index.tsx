@@ -55,8 +55,23 @@ const Index = () => {
   const [editing, setEditing] = useState<Article | null>(null);
   const [creating, setCreating] = useState(false);
   const [noteFor, setNoteFor] = useState<Article | null>(null);
+  const [page, setPage] = useState(1);
 
   const results = useMemo(() => filterArticles(articles, filters), [articles, filters]);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const cols = useColumnCount(gridRef);
+  const pageSize = cols * ROWS_PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters, pageSize]);
+
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageItems = results.slice(startIdx, startIdx + pageSize);
+
 
   const handleMarkEmpty = async (a: Article) => {
     await updateFields.mutateAsync({ id: a.id, patch: { quantity: 0 } });
