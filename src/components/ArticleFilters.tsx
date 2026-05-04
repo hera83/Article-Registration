@@ -46,15 +46,22 @@ export function ArticleFilters({ filters, onChange }: Props) {
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Filter className="h-3.5 w-3.5" />
-            Filtre
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                {activeCount}
-              </Badge>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="relative" aria-label="Filtre">
+                <Filter className="h-4 w-4" />
+                {activeCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px]"
+                  >
+                    {activeCount}
+                  </Badge>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Filtre</TooltipContent>
+          </Tooltip>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-4">
           <div className="space-y-4">
