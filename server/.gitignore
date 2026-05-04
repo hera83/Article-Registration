@@ -1,0 +1,9 @@
+# Local mode build artefacts
+node_modules
+dist
+
+# Local env
+.env.local
+
+# OS / editor
+.DS_Store
