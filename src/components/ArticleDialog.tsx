@@ -1,0 +1,318 @@
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Loader2, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TagInput } from "./TagInput";
+import { useAreas } from "@/hooks/useAreas";
+import { useArticles, useDeleteArticle, useSaveArticle } from "@/hooks/useArticles";
+import { findSimilar } from "@/lib/search";
+import type { Article, ArticleType } from "@/lib/types";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode: "create" | "edit";
+  article?: Article;
+}
+
+interface FormState {
+  name: string;
+  article_type: ArticleType;
+  area_id: string | null;
+  brand: string;
+  model: string;
+  note: string;
+  unit: string;
+  quantity: string;
+  typical_location: string;
+  on_shopping_list: boolean;
+  shopping_note: string;
+  archived: boolean;
+  tagNames: string[];
+}
+
+const empty: FormState = {
+  name: "",
+  article_type: "normal",
+  area_id: null,
+  brand: "",
+  model: "",
+  note: "",
+  unit: "",
+  quantity: "",
+  typical_location: "",
+  on_shopping_list: false,
+  shopping_note: "",
+  archived: false,
+  tagNames: [],
+};
+
+function fromArticle(a: Article): FormState {
+  return {
+    name: a.name,
+    article_type: a.article_type,
+    area_id: a.area_id,
+    brand: a.brand ?? "",
+    model: a.model ?? "",
+    note: a.note ?? "",
+    unit: a.unit ?? "",
+    quantity: a.quantity != null ? String(a.quantity) : "",
+    typical_location: a.typical_location ?? "",
+    on_shopping_list: a.on_shopping_list,
+    shopping_note: a.shopping_note ?? "",
+    archived: a.archived,
+    tagNames: a.tags.map((t) => t.name),
+  };
+}
+
+export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
+  const { data: areas = [] } = useAreas();
+  const { data: articles = [] } = useArticles();
+  const save = useSaveArticle();
+  const del = useDeleteArticle();
+
+  const [form, setForm] = useState<FormState>(empty);
+
+  useEffect(() => {
+    if (open) setForm(article ? fromArticle(article) : empty);
+  }, [open, article]);
+
+  const isStock = form.article_type === "stock";
+
+  const similar = useMemo(() => {
+    if (mode !== "create" || form.name.trim().length < 2) return [];
+    return findSimilar(articles, { name: form.name, brand: form.brand, model: form.model }, article?.id);
+  }, [mode, form.name, form.brand, form.model, articles, article?.id]);
+
+  const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
+    setForm((f) => ({ ...f, [key]: value }));
+
+  const submit = async () => {
+    if (!form.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    try {
+      await save.mutateAsync({
+        id: article?.id,
+        name: form.name.trim(),
+        article_type: form.article_type,
+        area_id: form.area_id,
+        brand: form.brand.trim() || null,
+        model: form.model.trim() || null,
+        note: form.note.trim() || null,
+        unit: isStock ? form.unit.trim() || null : null,
+        quantity: isStock ? (form.quantity === "" ? 0 : Number(form.quantity)) : null,
+        typical_location: form.typical_location.trim() || null,
+        on_shopping_list: isStock ? form.on_shopping_list : false,
+        shopping_note: isStock && form.on_shopping_list ? form.shopping_note.trim() || null : null,
+        archived: form.archived,
+        tagNames: form.tagNames,
+      });
+      toast.success(mode === "create" ? "Article created" : "Article updated");
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
+  };
+
+  const remove = async () => {
+    if (!article) return;
+    if (!confirm(`Delete "${article.name}"? This cannot be undone.`)) return;
+    try {
+      await del.mutateAsync(article.id);
+      toast.success("Article deleted");
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Add article" : "Edit article"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={form.name}
+              onChange={(e) => update("name", e.target.value)}
+              placeholder="e.g. RJ45 CAT6 connectors"
+              autoFocus
+              className="mt-1.5"
+            />
+            {similar.length > 0 && (
+              <div className="mt-2 rounded-md border border-warning/30 bg-warning/5 p-2.5">
+                <p className="text-xs font-medium text-warning">Possible duplicates:</p>
+                <ul className="mt-1 space-y-0.5 text-sm">
+                  {similar.map((s) => (
+                    <li key={s.id} className="text-muted-foreground">
+                      • <span className="text-foreground">{s.name}</span>
+                      {s.brand && <span className="text-xs"> · {s.brand}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Label>Type</Label>
+            <Tabs
+              value={form.article_type}
+              onValueChange={(v) => update("article_type", v as ArticleType)}
+              className="mt-1.5"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="normal">Normal</TabsTrigger>
+                <TabsTrigger value="stock">Stock</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Area</Label>
+              <Select
+                value={form.area_id ?? "none"}
+                onValueChange={(v) => update("area_id", v === "none" ? null : v)}
+              >
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Select area" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No area</SelectItem>
+                  {areas.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="loc">Typical location</Label>
+              <Input
+                id="loc"
+                value={form.typical_location}
+                onChange={(e) => update("typical_location", e.target.value)}
+                placeholder="e.g. Garage shelf"
+                className="mt-1.5"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="brand">Brand</Label>
+              <Input id="brand" value={form.brand} onChange={(e) => update("brand", e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label htmlFor="model">Model</Label>
+              <Input id="model" value={form.model} onChange={(e) => update("model", e.target.value)} className="mt-1.5" />
+            </div>
+          </div>
+
+          <div>
+            <Label>Tags</Label>
+            <div className="mt-1.5">
+              <TagInput value={form.tagNames} onChange={(v) => update("tagNames", v)} />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="note">Note</Label>
+            <Textarea
+              id="note"
+              value={form.note}
+              onChange={(e) => update("note", e.target.value)}
+              placeholder="Optional description or notes"
+              className="mt-1.5 min-h-[72px]"
+            />
+          </div>
+
+          {isStock && (
+            <div className="rounded-lg border bg-secondary/30 p-3 space-y-3 animate-fade-in">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Stock</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="qty">Quantity</Label>
+                  <Input
+                    id="qty"
+                    type="number"
+                    inputMode="decimal"
+                    value={form.quantity}
+                    onChange={(e) => update("quantity", e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unit">Unit</Label>
+                  <Input
+                    id="unit"
+                    value={form.unit}
+                    onChange={(e) => update("unit", e.target.value)}
+                    placeholder="pcs, m, L…"
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="onlist" className="text-sm font-normal">On shopping list</Label>
+                <Switch
+                  id="onlist"
+                  checked={form.on_shopping_list}
+                  onCheckedChange={(v) => update("on_shopping_list", v)}
+                />
+              </div>
+              {form.on_shopping_list && (
+                <div>
+                  <Label htmlFor="snote">Shopping note</Label>
+                  <Input
+                    id="snote"
+                    value={form.shopping_note}
+                    onChange={(e) => update("shopping_note", e.target.value)}
+                    placeholder="e.g. Buy a bag of 100"
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-1">
+            <Label htmlFor="arch" className="text-sm font-normal">Archived</Label>
+            <Switch id="arch" checked={form.archived} onCheckedChange={(v) => update("archived", v)} />
+          </div>
+        </div>
+
+        <DialogFooter className="flex-row items-center justify-between sm:justify-between gap-2">
+          {mode === "edit" ? (
+            <Button variant="ghost" size="sm" onClick={remove} className="text-destructive hover:text-destructive">
+              <Trash2 className="mr-1.5 h-4 w-4" /> Delete
+            </Button>
+          ) : <span />}
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={submit} disabled={save.isPending}>
+              {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
