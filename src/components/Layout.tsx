@@ -57,7 +57,7 @@ export function Layout() {
                   aria-label={SETTINGS.label}
                   className={({ isActive }) =>
                     cn(
-                      "inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-md align-middle leading-none transition-colors",
                       isActive
                         ? "bg-secondary text-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
