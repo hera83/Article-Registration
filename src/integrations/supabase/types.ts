@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      areas: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      article_tags: {
+        Row: {
+          article_id: string
+          tag_id: string
+        }
+        Insert: {
+          article_id: string
+          tag_id: string
+        }
+        Update: {
+          article_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_tags_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles: {
+        Row: {
+          archived: boolean
+          area_id: string | null
+          article_type: Database["public"]["Enums"]["article_type"]
+          brand: string | null
+          created_at: string
+          id: string
+          model: string | null
+          name: string
+          note: string | null
+          on_shopping_list: boolean
+          quantity: number | null
+          shopping_note: string | null
+          typical_location: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          area_id?: string | null
+          article_type?: Database["public"]["Enums"]["article_type"]
+          brand?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          name: string
+          note?: string | null
+          on_shopping_list?: boolean
+          quantity?: number | null
+          shopping_note?: string | null
+          typical_location?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          area_id?: string | null
+          article_type?: Database["public"]["Enums"]["article_type"]
+          brand?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          name?: string
+          note?: string | null
+          on_shopping_list?: boolean
+          quantity?: number | null
+          shopping_note?: string | null
+          typical_location?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +150,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      article_type: "normal" | "stock"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +277,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      article_type: ["normal", "stock"],
+    },
   },
 } as const
