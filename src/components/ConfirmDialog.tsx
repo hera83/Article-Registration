@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   open: boolean;
@@ -54,17 +55,35 @@ export function ConfirmDialog({
             </div>
           </div>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className={cn(
-              variant === "destructive" &&
-                buttonVariants({ variant: "destructive" })
-            )}
-          >
-            {confirmLabel}
-          </AlertDialogAction>
+        <AlertDialogFooter className="gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogCancel
+                aria-label={cancelLabel}
+                className={cn(buttonVariants({ variant: "outline", size: "icon" }), "mt-0")}
+              >
+                <X className="h-4 w-4" />
+              </AlertDialogCancel>
+            </TooltipTrigger>
+            <TooltipContent>{cancelLabel}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogAction
+                aria-label={confirmLabel}
+                onClick={onConfirm}
+                className={cn(
+                  buttonVariants({
+                    variant: variant === "destructive" ? "destructive" : "default",
+                    size: "icon",
+                  })
+                )}
+              >
+                <Check className="h-4 w-4" />
+              </AlertDialogAction>
+            </TooltipTrigger>
+            <TooltipContent>{confirmLabel}</TooltipContent>
+          </Tooltip>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,10 +1,11 @@
-import { Filter, X } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAreas } from "@/hooks/useAreas";
 import { useTags } from "@/hooks/useTags";
 import { DEFAULT_FILTERS, type Filters } from "@/lib/types";
@@ -45,15 +46,22 @@ export function ArticleFilters({ filters, onChange }: Props) {
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Filter className="h-3.5 w-3.5" />
-            Filtre
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                {activeCount}
-              </Badge>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="relative" aria-label="Filtre">
+                <Filter className="h-4 w-4" />
+                {activeCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px]"
+                  >
+                    {activeCount}
+                  </Badge>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Filtre</TooltipContent>
+          </Tooltip>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-4">
           <div className="space-y-4">
@@ -160,9 +168,16 @@ export function ArticleFilters({ filters, onChange }: Props) {
             </section>
 
             {activeCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={reset} className="w-full">
-                <X className="mr-1.5 h-3.5 w-3.5" /> Nulstil filtre
-              </Button>
+              <div className="flex justify-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={reset} aria-label="Nulstil filtre">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Nulstil filtre</TooltipContent>
+                </Tooltip>
+              </div>
             )}
           </div>
         </PopoverContent>

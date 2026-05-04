@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { IconButton } from "./IconButton";
 
 interface Props {
   open: boolean;
@@ -38,7 +39,8 @@ export function ShoppingNoteDialog({
         <DialogHeader>
           <DialogTitle>Tilføj til indkøbslisten</DialogTitle>
           <DialogDescription>
-            Tilføj en valgfri note til <span className="font-medium text-foreground">{articleName}</span> (fx mængde eller mærke).
+            Tilføj en valgfri note til{" "}
+            <span className="font-medium text-foreground">{articleName}</span> (fx mængde eller mærke).
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -52,18 +54,22 @@ export function ShoppingNoteDialog({
             autoFocus
           />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuller
-          </Button>
-          <Button
+        <DialogFooter className="gap-2">
+          <IconButton
+            label="Annuller"
+            icon={<X className="h-4 w-4" />}
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          />
+          <IconButton
+            label="Tilføj til liste"
+            icon={<Check className="h-4 w-4" />}
+            variant="default"
             onClick={async () => {
               await onConfirm(note.trim());
               onOpenChange(false);
             }}
-          >
-            Tilføj til liste
-          </Button>
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

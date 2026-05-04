@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Trash2 } from "lucide-react";
+import { Check, Loader2, Trash2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { IconButton } from "./IconButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -301,16 +301,28 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
 
         <DialogFooter className="flex-row items-center justify-between sm:justify-between gap-2">
           {mode === "edit" ? (
-            <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-destructive hover:text-destructive">
-              <Trash2 className="mr-1.5 h-4 w-4" /> Slet
-            </Button>
+            <IconButton
+              label="Slet artikel"
+              icon={<Trash2 className="h-4 w-4" />}
+              variant="ghost"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setConfirmDelete(true)}
+            />
           ) : <span />}
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuller</Button>
-            <Button onClick={submit} disabled={save.isPending}>
-              {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-              Gem
-            </Button>
+            <IconButton
+              label="Annuller"
+              icon={<X className="h-4 w-4" />}
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            />
+            <IconButton
+              label="Gem"
+              icon={save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              variant="default"
+              onClick={submit}
+              disabled={save.isPending}
+            />
           </div>
         </DialogFooter>
 

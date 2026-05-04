@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search as SearchIcon, SearchX } from "lucide-react";
+import { Plus, RotateCcw, Search as SearchIcon, SearchX } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/IconButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleDialog } from "@/components/ArticleDialog";
@@ -67,9 +67,12 @@ const Index = () => {
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <ArticleFilters filters={filters} onChange={setFilters} />
-          <Button variant="outline" size="sm" onClick={() => setCreating(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Ny artikel
-          </Button>
+          <IconButton
+            label="Ny artikel"
+            icon={<Plus className="h-4 w-4" />}
+            variant="outline"
+            onClick={() => setCreating(true)}
+          />
         </div>
       </section>
 
@@ -87,9 +90,12 @@ const Index = () => {
               title="Ingen artikler endnu"
               description="Registrer din første genstand for at begynde dit personlige katalog."
               action={
-                <Button onClick={() => setCreating(true)}>
-                  <Plus className="mr-1.5 h-4 w-4" /> Tilføj artikel
-                </Button>
+                <IconButton
+                  label="Tilføj artikel"
+                  icon={<Plus className="h-4 w-4" />}
+                  variant="default"
+                  onClick={() => setCreating(true)}
+                />
               }
             />
           ) : (
@@ -98,9 +104,12 @@ const Index = () => {
               title="Ingen resultater"
               description="Prøv en anden søgning eller fjern nogle filtre."
               action={
-                <Button variant="outline" onClick={() => setFilters(DEFAULT_FILTERS)}>
-                  Nulstil filtre
-                </Button>
+                <IconButton
+                  label="Nulstil filtre"
+                  icon={<RotateCcw className="h-4 w-4" />}
+                  variant="outline"
+                  onClick={() => setFilters(DEFAULT_FILTERS)}
+                />
               }
             />
           )
