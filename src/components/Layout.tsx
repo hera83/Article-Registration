@@ -68,7 +68,7 @@ export function Layout() {
                     )
                   }
                 >
-                  <SETTINGS.icon className="h-4 w-4" />
+                  <SETTINGS.icon className="h-4 w-4 translate-y-px" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent>{SETTINGS.label}</TooltipContent>
