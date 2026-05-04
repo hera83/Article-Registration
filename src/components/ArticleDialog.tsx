@@ -247,69 +247,9 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
             </div>
           </section>
 
-          {/* Højre: Lager + Note */}
+          {/* Højre: Note + Lager */}
           <section className="md:border-l md:pl-6 space-y-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Lager
-            </p>
-
-            {isStock ? (
-              <div className="space-y-4 animate-fade-in">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="qty">Antal</Label>
-                    <Input
-                      id="qty"
-                      type="number"
-                      inputMode="decimal"
-                      value={form.quantity}
-                      onChange={(e) => update("quantity", e.target.value)}
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="unit">Enhed</Label>
-                    <Input
-                      id="unit"
-                      value={form.unit}
-                      onChange={(e) => update("unit", e.target.value)}
-                      placeholder="stk, m, L…"
-                      className="mt-1.5"
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-lg border bg-secondary/30 p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="onlist" className="text-sm font-normal">På indkøbslisten</Label>
-                    <Switch
-                      id="onlist"
-                      checked={form.on_shopping_list}
-                      onCheckedChange={(v) => update("on_shopping_list", v)}
-                    />
-                  </div>
-                  {form.on_shopping_list && (
-                    <div>
-                      <Label htmlFor="snote">Indkøbsnote</Label>
-                      <Input
-                        id="snote"
-                        value={form.shopping_note}
-                        onChange={(e) => update("shopping_note", e.target.value)}
-                        placeholder="f.eks. Køb en pose med 100"
-                        className="mt-1.5"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed bg-muted/20 p-4 text-center text-sm text-muted-foreground">
-                Skift type til <span className="font-medium text-foreground">Lager</span> for at
-                holde styr på antal og indkøbsliste.
-              </div>
-            )}
-
-            <div className="pt-2">
+            <div>
               <Label htmlFor="note">Note</Label>
               <Textarea
                 id="note"
@@ -318,6 +258,68 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
                 placeholder="Valgfri beskrivelse eller noter"
                 className="mt-1.5 min-h-[140px]"
               />
+            </div>
+
+            <div className="pt-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Lager
+              </p>
+
+              {isStock ? (
+                <div className="mt-3 space-y-4 animate-fade-in">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="qty">Antal</Label>
+                      <Input
+                        id="qty"
+                        type="number"
+                        inputMode="decimal"
+                        value={form.quantity}
+                        onChange={(e) => update("quantity", e.target.value)}
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="unit">Enhed</Label>
+                      <Input
+                        id="unit"
+                        value={form.unit}
+                        onChange={(e) => update("unit", e.target.value)}
+                        placeholder="stk, m, L…"
+                        className="mt-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border bg-secondary/30 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="onlist" className="text-sm font-normal">På indkøbslisten</Label>
+                      <Switch
+                        id="onlist"
+                        checked={form.on_shopping_list}
+                        onCheckedChange={(v) => update("on_shopping_list", v)}
+                      />
+                    </div>
+                    {form.on_shopping_list && (
+                      <div>
+                        <Label htmlFor="snote">Indkøbsnote</Label>
+                        <Input
+                          id="snote"
+                          value={form.shopping_note}
+                          onChange={(e) => update("shopping_note", e.target.value)}
+                          placeholder="f.eks. Køb en pose med 100"
+                          className="mt-1.5"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3 rounded-lg border border-dashed bg-muted/20 p-4 text-center text-sm text-muted-foreground">
+                  Skift type til <span className="font-medium text-foreground">Lager</span> for at
+                  holde styr på antal og indkøbsliste.
+                </div>
+              )}
             </div>
           </section>
         </div>
