@@ -26,7 +26,7 @@ function ShoppingRow({ article }: { article: Article }) {
     try {
       await update.mutateAsync({
         id: article.id,
-        patch: { quantity: n, on_shopping_list: false },
+        patch: { quantity: n, on_shopping_list: false, shopping_note: null },
       });
       toast.success(`${article.name} er gemt`, { description: "Fjernet fra indkøbslisten" });
     } catch (e) {
