@@ -75,8 +75,7 @@ const Index = () => {
 
   const results = useMemo(() => filterArticles(articles, filters), [articles, filters]);
 
-  const gridRef = useRef<HTMLDivElement>(null);
-  const cols = useColumnCount(gridRef);
+  const [gridRef, cols] = useColumnCount();
   const pageSize = cols * ROWS_PER_PAGE;
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
 
