@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Boxes, ListChecks, Search, Settings as SettingsIcon } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { buttonVariants } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -48,8 +49,10 @@ export function Layout() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1">
-            <ThemeToggle />
+          <div className="ml-auto flex h-10 items-center gap-1 self-center">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center self-center">
+              <ThemeToggle />
+            </div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
@@ -57,14 +60,15 @@ export function Layout() {
                   aria-label={SETTINGS.label}
                   className={({ isActive }) =>
                     cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-md align-middle leading-none transition-colors",
+                      buttonVariants({ variant: "ghost", size: "icon" }),
+                      "shrink-0 self-center p-0 leading-none",
                       isActive
                         ? "bg-secondary text-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                     )
                   }
                 >
-                  <SETTINGS.icon className="h-4 w-4" />
+                  <SETTINGS.icon className="h-4 w-4 translate-y-px" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent>{SETTINGS.label}</TooltipContent>
