@@ -7,9 +7,9 @@ import { useState } from "react";
 import { ArticleDialog } from "./ArticleDialog";
 
 const NAV = [
-  { to: "/", label: "Search", icon: Search, end: true },
-  { to: "/shopping", label: "Shopping", icon: ListChecks },
-  { to: "/settings", label: "Settings", icon: SettingsIcon },
+  { to: "/", label: "Søg", icon: Search, end: true },
+  { to: "/shopping", label: "Indkøb", icon: ListChecks },
+  { to: "/settings", label: "Indstillinger", icon: SettingsIcon },
 ];
 
 export function Layout() {
@@ -23,10 +23,10 @@ export function Layout() {
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 font-semibold tracking-tight"
-            aria-label="Article Registration home"
+            aria-label="Artikelregistrering – forside"
           >
             <Boxes className="h-5 w-5 text-primary" />
-            <span>Article Registration</span>
+            <span>Artikelregistrering</span>
           </button>
 
           <nav className="ml-6 hidden md:flex items-center gap-1">
@@ -53,7 +53,7 @@ export function Layout() {
           <div className="ml-auto flex items-center gap-2">
             <Button onClick={() => setOpenNew(true)} size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add article</span>
+              <span className="hidden sm:inline">Tilføj artikel</span>
             </Button>
             <ThemeToggle />
           </div>
@@ -64,7 +64,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Mobil bundnavigation */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur">
         <div className="grid grid-cols-3">
           {NAV.map(({ to, label, icon: Icon, end }) => (

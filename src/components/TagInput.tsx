@@ -46,7 +46,7 @@ export function TagInput({ value, onChange }: Props) {
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
               className="text-muted-foreground hover:text-foreground"
-              aria-label={`Remove ${tag}`}
+              aria-label={`Fjern ${tag}`}
             >
               <X className="h-3 w-3" />
             </button>
@@ -57,7 +57,7 @@ export function TagInput({ value, onChange }: Props) {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKey}
           onBlur={() => draft && add(draft)}
-          placeholder={value.length ? "" : "Add tag, press Enter"}
+          placeholder={value.length ? "" : "Tilføj tag, tryk Enter"}
           className="h-7 flex-1 min-w-[8rem] border-0 px-1 shadow-none focus-visible:ring-0"
         />
       </div>

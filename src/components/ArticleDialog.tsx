@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TagInput } from "./TagInput";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { useAreas } from "@/hooks/useAreas";
 import { useArticles, useDeleteArticle, useSaveArticle } from "@/hooks/useArticles";
 import { findSimilar } from "@/lib/search";
@@ -79,6 +80,7 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
   const del = useDeleteArticle();
 
   const [form, setForm] = useState<FormState>(empty);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (open) setForm(article ? fromArticle(article) : empty);
@@ -96,7 +98,7 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
 
   const submit = async () => {
     if (!form.name.trim()) {
-      toast.error("Name is required");
+      toast.error("Navn er påkrævet");
       return;
     }
     try {
@@ -116,22 +118,21 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
         archived: form.archived,
         tagNames: form.tagNames,
       });
-      toast.success(mode === "create" ? "Article created" : "Article updated");
+      toast.success(mode === "create" ? "Artikel oprettet" : "Artikel opdateret");
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
+      toast.error(e instanceof Error ? e.message : "Kunne ikke gemme");
     }
   };
 
   const remove = async () => {
     if (!article) return;
-    if (!confirm(`Delete "${article.name}"? This cannot be undone.`)) return;
     try {
       await del.mutateAsync(article.id);
-      toast.success("Article deleted");
+      toast.success("Artikel slettet");
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete");
+      toast.error(e instanceof Error ? e.message : "Kunne ikke slette");
     }
   };
 
@@ -139,23 +140,23 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Add article" : "Edit article"}</DialogTitle>
+          <DialogTitle>{mode === "create" ? "Tilføj artikel" : "Rediger artikel"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Navn</Label>
             <Input
               id="name"
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
-              placeholder="e.g. RJ45 CAT6 connectors"
+              placeholder="f.eks. RJ45 CAT6 stik"
               autoFocus
               className="mt-1.5"
             />
             {similar.length > 0 && (
               <div className="mt-2 rounded-md border border-warning/30 bg-warning/5 p-2.5">
-                <p className="text-xs font-medium text-warning">Possible duplicates:</p>
+                <p className="text-xs font-medium text-warning">Mulige dubletter:</p>
                 <ul className="mt-1 space-y-0.5 text-sm">
                   {similar.map((s) => (
                     <li key={s.id} className="text-muted-foreground">
@@ -177,23 +178,23 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="normal">Normal</TabsTrigger>
-                <TabsTrigger value="stock">Stock</TabsTrigger>
+                <TabsTrigger value="stock">Lager</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Area</Label>
+              <Label>Område</Label>
               <Select
                 value={form.area_id ?? "none"}
                 onValueChange={(v) => update("area_id", v === "none" ? null : v)}
               >
                 <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Select area" />
+                  <SelectValue placeholder="Vælg område" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No area</SelectItem>
+                  <SelectItem value="none">Intet område</SelectItem>
                   {areas.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
@@ -203,12 +204,12 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="loc">Typical location</Label>
+              <Label htmlFor="loc">Typisk placering</Label>
               <Input
                 id="loc"
                 value={form.typical_location}
                 onChange={(e) => update("typical_location", e.target.value)}
-                placeholder="e.g. Garage shelf"
+                placeholder="f.eks. Garagehylde"
                 className="mt-1.5"
               />
             </div>
@@ -216,7 +217,7 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="brand">Brand</Label>
+              <Label htmlFor="brand">Mærke</Label>
               <Input id="brand" value={form.brand} onChange={(e) => update("brand", e.target.value)} className="mt-1.5" />
             </div>
             <div>
@@ -238,17 +239,17 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
               id="note"
               value={form.note}
               onChange={(e) => update("note", e.target.value)}
-              placeholder="Optional description or notes"
+              placeholder="Valgfri beskrivelse eller noter"
               className="mt-1.5 min-h-[72px]"
             />
           </div>
 
           {isStock && (
             <div className="rounded-lg border bg-secondary/30 p-3 space-y-3 animate-fade-in">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Stock</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Lager</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="qty">Quantity</Label>
+                  <Label htmlFor="qty">Antal</Label>
                   <Input
                     id="qty"
                     type="number"
@@ -259,18 +260,18 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="unit">Unit</Label>
+                  <Label htmlFor="unit">Enhed</Label>
                   <Input
                     id="unit"
                     value={form.unit}
                     onChange={(e) => update("unit", e.target.value)}
-                    placeholder="pcs, m, L…"
+                    placeholder="stk, m, L…"
                     className="mt-1.5"
                   />
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="onlist" className="text-sm font-normal">On shopping list</Label>
+                <Label htmlFor="onlist" className="text-sm font-normal">På indkøbslisten</Label>
                 <Switch
                   id="onlist"
                   checked={form.on_shopping_list}
@@ -279,12 +280,12 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
               </div>
               {form.on_shopping_list && (
                 <div>
-                  <Label htmlFor="snote">Shopping note</Label>
+                  <Label htmlFor="snote">Indkøbsnote</Label>
                   <Input
                     id="snote"
                     value={form.shopping_note}
                     onChange={(e) => update("shopping_note", e.target.value)}
-                    placeholder="e.g. Buy a bag of 100"
+                    placeholder="f.eks. Køb en pose med 100"
                     className="mt-1.5"
                   />
                 </div>
@@ -293,25 +294,42 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
           )}
 
           <div className="flex items-center justify-between pt-1">
-            <Label htmlFor="arch" className="text-sm font-normal">Archived</Label>
+            <Label htmlFor="arch" className="text-sm font-normal">Arkiveret</Label>
             <Switch id="arch" checked={form.archived} onCheckedChange={(v) => update("archived", v)} />
           </div>
         </div>
 
         <DialogFooter className="flex-row items-center justify-between sm:justify-between gap-2">
           {mode === "edit" ? (
-            <Button variant="ghost" size="sm" onClick={remove} className="text-destructive hover:text-destructive">
-              <Trash2 className="mr-1.5 h-4 w-4" /> Delete
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-destructive hover:text-destructive">
+              <Trash2 className="mr-1.5 h-4 w-4" /> Slet
             </Button>
           ) : <span />}
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuller</Button>
             <Button onClick={submit} disabled={save.isPending}>
               {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-              Save
+              Gem
             </Button>
           </div>
         </DialogFooter>
+
+        {article && (
+          <ConfirmDialog
+            open={confirmDelete}
+            onOpenChange={setConfirmDelete}
+            title="Slet artikel?"
+            description={
+              <>
+                Er du sikker på, at du vil slette{" "}
+                <span className="font-medium text-foreground">"{article.name}"</span>? Det kan ikke
+                fortrydes.
+              </>
+            }
+            confirmLabel="Slet"
+            onConfirm={remove}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
