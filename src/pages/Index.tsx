@@ -24,27 +24,31 @@ import { DEFAULT_FILTERS, type Article, type Filters } from "@/lib/types";
 
 const ROWS_PER_PAGE = 3;
 
-function useColumnCount(ref: React.RefObject<HTMLElement>) {
+function useColumnCount() {
   const [cols, setCols] = useState(1);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const ref = (el: HTMLElement | null) => setNode(el);
+
+  useEffect(() => {
+    if (!node) return;
     const compute = () => {
-      const style = window.getComputedStyle(el);
+      const style = window.getComputedStyle(node);
       const template = style.gridTemplateColumns;
-      const count = template && template !== "none" ? template.split(" ").length : 1;
+      const count =
+        template && template !== "none" ? template.split(" ").filter(Boolean).length : 1;
       setCols(Math.max(1, count));
     };
     compute();
     const ro = new ResizeObserver(compute);
-    ro.observe(el);
+    ro.observe(node);
     window.addEventListener("resize", compute);
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", compute);
     };
-  }, [ref]);
-  return cols;
+  }, [node]);
+
+  return [ref, cols] as const;
 }
 
 function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
@@ -71,8 +75,7 @@ const Index = () => {
 
   const results = useMemo(() => filterArticles(articles, filters), [articles, filters]);
 
-  const gridRef = useRef<HTMLDivElement>(null);
-  const cols = useColumnCount(gridRef);
+  const [gridRef, cols] = useColumnCount();
   const pageSize = cols * ROWS_PER_PAGE;
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
 
