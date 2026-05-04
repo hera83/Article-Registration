@@ -187,7 +187,7 @@ const Index = () => {
             </p>
             <div
               ref={gridRef}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 animate-fade-in"
             >
               {pageItems.map((a) => (
                 <ArticleCard
