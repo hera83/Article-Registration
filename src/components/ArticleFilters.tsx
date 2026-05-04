@@ -1,10 +1,11 @@
-import { Filter, X } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAreas } from "@/hooks/useAreas";
 import { useTags } from "@/hooks/useTags";
 import { DEFAULT_FILTERS, type Filters } from "@/lib/types";
