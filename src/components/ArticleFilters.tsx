@@ -45,8 +45,8 @@ export function ArticleFilters({ filters, onChange }: Props) {
       </Tabs>
 
       <Popover>
-        <PopoverTrigger asChild>
-          <Tooltip>
+        <Tooltip>
+          <PopoverTrigger asChild>
             <TooltipTrigger asChild>
               <Button variant="outline" size="icon" className="relative" aria-label="Filtre">
                 <Filter className="h-4 w-4" />
@@ -60,9 +60,9 @@ export function ArticleFilters({ filters, onChange }: Props) {
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Filtre</TooltipContent>
-          </Tooltip>
-        </PopoverTrigger>
+          </PopoverTrigger>
+          <TooltipContent>Filtre</TooltipContent>
+        </Tooltip>
         <PopoverContent align="start" className="w-80 p-4">
           <div className="space-y-4">
             <section>
