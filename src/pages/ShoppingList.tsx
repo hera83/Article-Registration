@@ -1,39 +1,36 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { ExternalLink, ListChecks, Loader2, Trash2 } from "lucide-react";
+import { Check, ListChecks, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { ArticleDialog } from "@/components/ArticleDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import type { Article } from "@/lib/types";
 
-function ShoppingRow({ article, onOpen }: { article: Article; onOpen: (a: Article) => void }) {
+function ShoppingRow({ article }: { article: Article }) {
   const update = useUpdateArticleFields();
   const [qty, setQty] = useState<string>(article.quantity != null ? String(article.quantity) : "0");
   const [saving, setSaving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const commit = async () => {
+  const handleSave = async () => {
     const n = Number(qty);
-    if (Number.isNaN(n) || n === (article.quantity ?? 0)) return;
+    if (Number.isNaN(n)) {
+      toast.error("Ugyldigt antal");
+      return;
+    }
     setSaving(true);
     try {
-      const removeFromList = n > 0;
       await update.mutateAsync({
         id: article.id,
-        patch: removeFromList
-          ? { quantity: n, on_shopping_list: false }
-          : { quantity: n },
+        patch: { quantity: n, on_shopping_list: false },
       });
-      if (removeFromList) {
-        toast.success(`${article.name} er fyldt op`, { description: "Fjernet fra indkøbslisten" });
-      }
+      toast.success(`${article.name} er gemt`, { description: "Fjernet fra indkøbslisten" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Kunne ikke opdatere");
+      toast.error(e instanceof Error ? e.message : "Kunne ikke gemme");
     } finally {
       setSaving(false);
     }
