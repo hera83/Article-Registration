@@ -78,7 +78,7 @@ export function Layout() {
         </div>
       </nav>
 
-      <ArticleDialog open={openNew} onOpenChange={setOpenNew} mode="create" />
+      
     </div>
   );
 }
