@@ -131,6 +131,25 @@ const Index = () => {
         mode="edit"
         article={editing ?? undefined}
       />
+      <ShoppingNoteDialog
+        open={!!noteFor}
+        onOpenChange={(o) => !o && setNoteFor(null)}
+        articleName={noteFor?.name ?? ""}
+        initialNote={noteFor?.shopping_note}
+        onConfirm={async (note) => {
+          if (!noteFor) return;
+          await updateFields.mutateAsync({
+            id: noteFor.id,
+            patch: { on_shopping_list: true, shopping_note: note || null },
+          });
+          toast.success(`Tilføjet "${noteFor.name}" til indkøbslisten`);
+        }}
+      />
+    </div>
+  );
+};
+
+export default Index;
     </div>
   );
 };
