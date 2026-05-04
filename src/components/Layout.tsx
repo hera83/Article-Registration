@@ -51,9 +51,6 @@ export function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button onClick={() => setOpenNew(true)} size="icon" aria-label="Tilføj artikel" title="Tilføj artikel">
-              <Plus className="h-4 w-4" />
-            </Button>
             <ThemeToggle />
           </div>
         </div>
