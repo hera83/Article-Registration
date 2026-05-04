@@ -1,13 +1,15 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Boxes, ListChecks, Search, Settings as SettingsIcon } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Søg", icon: Search, end: true },
   { to: "/shopping", label: "Indkøb", icon: ListChecks },
-  { to: "/settings", label: "Indstillinger", icon: SettingsIcon },
 ];
+
+const SETTINGS = { to: "/settings", label: "Indstillinger", icon: SettingsIcon };
 
 export function Layout() {
   const navigate = useNavigate();
@@ -46,7 +48,26 @@ export function Layout() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to={SETTINGS.to}
+                  aria-label={SETTINGS.label}
+                  className={({ isActive }) =>
+                    cn(
+                      "inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                      isActive
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                    )
+                  }
+                >
+                  <SETTINGS.icon className="h-4 w-4" />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent>{SETTINGS.label}</TooltipContent>
+            </Tooltip>
             <ThemeToggle />
           </div>
         </div>
@@ -59,7 +80,7 @@ export function Layout() {
       {/* Mobil bundnavigation */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur">
         <div className="grid grid-cols-3">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
+          {[...NAV, SETTINGS].map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -77,8 +98,6 @@ export function Layout() {
           ))}
         </div>
       </nav>
-
-      
     </div>
   );
 }
