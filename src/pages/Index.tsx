@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, RotateCcw, Search as SearchIcon, SearchX } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,43 @@ import { ArticleDialog } from "@/components/ArticleDialog";
 import { ArticleFilters } from "@/components/ArticleFilters";
 import { EmptyState } from "@/components/EmptyState";
 import { ShoppingNoteDialog } from "@/components/ShoppingNoteDialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { useArticles, useUpdateArticleFields } from "@/hooks/useArticles";
 import { filterArticles } from "@/lib/search";
 import { DEFAULT_FILTERS, type Article, type Filters } from "@/lib/types";
+
+const ROWS_PER_PAGE = 3;
+
+function useColumnCount(ref: React.RefObject<HTMLElement>) {
+  const [cols, setCols] = useState(1);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const compute = () => {
+      const style = window.getComputedStyle(el);
+      const template = style.gridTemplateColumns;
+      const count = template && template !== "none" ? template.split(" ").length : 1;
+      setCols(Math.max(1, count));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    window.addEventListener("resize", compute);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, [ref]);
+  return cols;
+}
 
 const Index = () => {
   const { data: articles = [], isLoading } = useArticles();
