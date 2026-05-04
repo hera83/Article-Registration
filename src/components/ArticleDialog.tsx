@@ -241,24 +241,13 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="note">Note</Label>
-              <Textarea
-                id="note"
-                value={form.note}
-                onChange={(e) => update("note", e.target.value)}
-                placeholder="Valgfri beskrivelse eller noter"
-                className="mt-1.5 min-h-[88px]"
-              />
-            </div>
-
             <div className="flex items-center justify-between pt-1">
               <Label htmlFor="arch" className="text-sm font-normal">Arkiveret</Label>
               <Switch id="arch" checked={form.archived} onCheckedChange={(v) => update("archived", v)} />
             </div>
           </section>
 
-          {/* Højre: Lager */}
+          {/* Højre: Lager + Note */}
           <section className="md:border-l md:pl-6 space-y-4">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Lager
@@ -314,11 +303,22 @@ export function ArticleDialog({ open, onOpenChange, mode, article }: Props) {
                 </div>
               </div>
             ) : (
-              <div className="rounded-lg border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed bg-muted/20 p-4 text-center text-sm text-muted-foreground">
                 Skift type til <span className="font-medium text-foreground">Lager</span> for at
                 holde styr på antal og indkøbsliste.
               </div>
             )}
+
+            <div className="pt-2">
+              <Label htmlFor="note">Note</Label>
+              <Textarea
+                id="note"
+                value={form.note}
+                onChange={(e) => update("note", e.target.value)}
+                placeholder="Valgfri beskrivelse eller noter"
+                className="mt-1.5 min-h-[140px]"
+              />
+            </div>
           </section>
         </div>
 
