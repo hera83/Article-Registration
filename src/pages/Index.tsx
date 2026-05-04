@@ -166,9 +166,15 @@ const Index = () => {
           <>
             <p className="mb-3 text-xs text-muted-foreground">
               {results.length} {results.length === 1 ? "artikel" : "artikler"}
+              {totalPages > 1 && (
+                <> · side {currentPage} af {totalPages}</>
+              )}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
-              {results.map((a) => (
+            <div
+              ref={gridRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in"
+            >
+              {pageItems.map((a) => (
                 <ArticleCard
                   key={a.id}
                   article={a}
@@ -178,6 +184,54 @@ const Index = () => {
                 />
               ))}
             </div>
+            {totalPages > 1 && (
+              <Pagination className="mt-6">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      aria-disabled={currentPage === 1}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) setPage(currentPage - 1);
+                      }}
+                    />
+                  </PaginationItem>
+                  {getPageNumbers(currentPage, totalPages).map((p, i) =>
+                    p === "ellipsis" ? (
+                      <PaginationItem key={`e-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href="#"
+                          isActive={p === currentPage}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(p);
+                          }}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      aria-disabled={currentPage === totalPages}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) setPage(currentPage + 1);
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </>
         )}
       </section>
