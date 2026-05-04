@@ -74,9 +74,8 @@ function ShoppingRow({ article }: { article: Article }) {
               inputMode="decimal"
               value={qty}
               onChange={(e) => setQty(e.target.value)}
-              onBlur={commit}
               onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                if (e.key === "Enter") handleSave();
               }}
               className="h-9 w-20 text-center"
               aria-label={`Antal for ${article.name}`}
@@ -84,17 +83,22 @@ function ShoppingRow({ article }: { article: Article }) {
             {article.unit && (
               <span className="text-xs text-muted-foreground w-8">{article.unit}</span>
             )}
-            {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           </div>
-          <Button size="icon" variant="ghost" onClick={() => onOpen(article)} aria-label="Åbn artikel" title="Åbn artikel">
-            <ExternalLink className="h-4 w-4" />
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving}
+            aria-label="Gem og fjern fra listen"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Gem
           </Button>
           <Button
             size="icon"
             variant="ghost"
             onClick={() => setConfirmRemove(true)}
-            aria-label="Fjern fra indkøbslisten"
-            title="Fjern fra listen"
+            aria-label="Slet fra indkøbslisten"
+            title="Slet fra listen"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
